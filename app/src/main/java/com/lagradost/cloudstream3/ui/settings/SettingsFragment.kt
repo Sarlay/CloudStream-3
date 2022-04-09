@@ -45,6 +45,7 @@ import com.lagradost.cloudstream3.utils.InAppUpdater.Companion.runAutoUpdate
 import com.lagradost.cloudstream3.utils.Qualities
 import com.lagradost.cloudstream3.utils.SingleSelectionHelper.showBottomDialog
 import com.lagradost.cloudstream3.utils.SingleSelectionHelper.showDialog
+import com.lagradost.cloudstream3.utils.SingleSelectionHelper.showNginxTextInputDialog
 import com.lagradost.cloudstream3.utils.SingleSelectionHelper.showMultiDialog
 import com.lagradost.cloudstream3.utils.SubtitleHelper
 import com.lagradost.cloudstream3.utils.SubtitleHelper.getFlagFromIso
@@ -473,6 +474,30 @@ class SettingsFragment : PreferenceFragmentCompat() {
                     settingsManager.edit()
                         .putString(getString(R.string.download_path_pref), dirs[it]).apply()
                 }
+            }
+            return@setOnPreferenceClickListener true
+        }
+
+	getPref(R.string.nginx_url_key)?.setOnPreferenceClickListener {
+
+            activity?.showNginxTextInputDialog(
+                settingsManager.getString(getString(R.string.nginx_url_pref), "Nginx server url").toString(),
+                settingsManager.getString(getString(R.string.nginx_url_key), "").toString(),  // key: the actual you use rn
+                {}) {
+                settingsManager.edit()
+                    .putString(getString(R.string.nginx_url_key), it).apply()  // change the stored url in nginx_url_key to it
+            }
+            return@setOnPreferenceClickListener true
+        }
+
+        getPref(R.string.nginx_credentials)?.setOnPreferenceClickListener {
+
+            activity?.showNginxTextInputDialog(
+                settingsManager.getString(getString(R.string.nginx_credentials_title), "Nginx Credentials").toString(),
+                settingsManager.getString(getString(R.string.nginx_credentials), "").toString(),  // key: the actual you use rn
+                {}) {
+                settingsManager.edit()
+                    .putString(getString(R.string.nginx_credentials), it).apply()  // change the stored url in nginx_url_key to it
             }
             return@setOnPreferenceClickListener true
         }

@@ -104,6 +104,7 @@ object APIHolder {
             MonoschinosProvider(),
             KawaiifuProvider(), // disabled due to cloudflare
             //MultiAnimeProvider(),
+	        NginxProvider(),
         )
     }
 
@@ -300,6 +301,7 @@ const val PROVIDER_STATUS_DOWN = 0
 data class ProvidersInfoJson(
     @JsonProperty("name") var name: String,
     @JsonProperty("url") var url: String,
+    @JsonProperty("credentials") var credentials: String = "None",
     @JsonProperty("status") var status: Int,
 )
 
@@ -312,6 +314,7 @@ abstract class MainAPI {
     fun overrideWithNewData(data: ProvidersInfoJson) {
         this.name = data.name
         this.mainUrl = data.url
+	    this.storedCredentials = data.credentials
     }
 
     init {
@@ -322,6 +325,7 @@ abstract class MainAPI {
 
     open var name = "NONE"
     open var mainUrl = "NONE"
+    open var storedCredentials = "NONE"
 
     //open val uniqueId : Int by lazy { this.name.hashCode() } // in case of duplicate providers you can have a shared id
 
