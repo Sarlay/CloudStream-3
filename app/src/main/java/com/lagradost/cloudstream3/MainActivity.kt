@@ -71,7 +71,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.*
 import kotlin.collections.HashMap
 import kotlin.concurrent.thread
 
@@ -363,23 +362,38 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
             e.printStackTrace()
             false
         }
-
-	fun addToJson(data : java.util.HashMap<String, ProvidersInfoJson>) : java.util.HashMap<String, ProvidersInfoJson> {
+    fun addToJson(data: java.util.HashMap<String, ProvidersInfoJson>): java.util.HashMap<String, ProvidersInfoJson>? {
+        try {
             val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
-            val nginxUrl = settingsManager.getString(getString(R.string.nginx_url_key), "null").toString()
-            val nginxCredentials = settingsManager.getString(getString(R.string.nginx_credentials), "null:null").toString()
-            data[NginxProvider().javaClass.simpleName] = ProvidersInfoJson(url = nginxUrl, name = NginxProvider().name, status = PROVIDER_STATUS_OK, credentials = nginxCredentials)
+            val nginxUrl =
+                settingsManager.getString(getString(R.string.nginx_url_key), "null").toString()
+            val nginxCredentials =
+                settingsManager.getString(getString(R.string.nginx_credentials), "null:null")
+                    .toString()
+            data[NginxProvider().javaClass.simpleName] = ProvidersInfoJson(
+                url = nginxUrl,
+                name = NginxProvider().name,
+                status = PROVIDER_STATUS_OK,
+                credentials = nginxCredentials
+            )
 
             return data
+        } catch (e: Exception) {
+            logError(e)
+            return null
         }
-    fun createJson(data : String) : ProvidersInfoJson { //java.util.HashMap<String, ProvidersInfoJson>
+    }
+    fun createJson() : ProvidersInfoJson? { //java.util.HashMap<String, ProvidersInfoJson>
+        return try {
             val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
             val nginxUrl = settingsManager.getString(getString(R.string.nginx_url_key), "null").toString()
             val nginxCredentials = settingsManager.getString(getString(R.string.nginx_credentials), "null:null").toString()
-            // val createdProvider: HashMap<String, ProvidersInfoJson> = hashMapOf(Pair("NginxProvider", ProvidersInfoJson(url = nginxUrl, name = NginxProvider().name, status = PROVIDER_STATUS_OK, credentials = nginxCredentials)))
-            // return createdProvider
-            return ProvidersInfoJson(url = nginxUrl, name = NginxProvider().name, status = PROVIDER_STATUS_OK, credentials = nginxCredentials)
+            ProvidersInfoJson(url = nginxUrl, name = NginxProvider().name, status = PROVIDER_STATUS_OK, credentials = nginxCredentials)
+        } catch (e: Exception) {
+            logError(e)
+            null
         }
+    }
 
         // this pulls the latest data so ppl don't have to update to simply change provider url
         if (downloadFromGithub) {
@@ -400,7 +414,7 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
                                         setKey(PROVIDER_STATUS_KEY, txt)
                                         MainAPI.overrideData = newCache // update all new providers
                                         
-                                        val newUpdatedCache = newCache?.let { addToJson(it) }  // adds the nginx provider to the hashmap
+                                        val newUpdatedCache = newCache?.let { addToJson(it) ?: it }
 
 					                    for (api in apis) { // update current providers
                                             newUpdatedCache?.get(api.javaClass.simpleName)?.let { data ->
@@ -420,8 +434,8 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
                                 newCache
                             }?.let { providersJsonMap ->
                                 MainAPI.overrideData = providersJsonMap
-                                val providersJsonMapUpdated = addToJson(providersJsonMap)
-				                val acceptableProviders =
+                                val providersJsonMapUpdated = addToJson(providersJsonMap)?: providersJsonMap // if return null, use unchanged one
+                                val acceptableProviders =
                                     providersJsonMapUpdated.filter { it.value.status == PROVIDER_STATUS_OK || it.value.status == PROVIDER_STATUS_SLOW }
                                         .map { it.key }.toSet()
 
@@ -449,9 +463,17 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
             }
         } else {
             apis = allProviders
-            val NginxProviderName = NginxProvider().name
-            val nginxProivderIndex = apis.indexOf(APIHolder.getApiFromName(NginxProviderName))
-            apis[nginxProivderIndex].overrideWithNewData(createJson(NginxProviderName))
+            try {
+                val nginxProviderName = NginxProvider().name
+                val nginxProviderIndex = apis.indexOf(APIHolder.getApiFromName(nginxProviderName))
+                val createdJsonProvider = createJson()
+                if (createdJsonProvider != null) {
+                    apis[nginxProviderIndex].overrideWithNewData(createdJsonProvider)
+                }
+            } catch (e: Exception) {
+                logError(e)
+            }
+
         }
 
         loadThemes(this)

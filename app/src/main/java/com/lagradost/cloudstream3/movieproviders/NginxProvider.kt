@@ -10,16 +10,18 @@ import java.lang.Exception
 class NginxProvider : MainAPI() {
     override var mainUrl = "null"  // TO CHANGE
     override var name = "Nginx"
-    override var storedCredentials: String = "null, test lmao"
+    override var storedCredentials: String? = null
     override val hasQuickSearch = false
     override val hasMainPage = true
     override val supportedTypes = setOf(TvType.AnimeMovie, TvType.TvSeries, TvType.Movie)
 
 
 
-    fun getAuthHeader(storedCredentials: String): Map<String, String> {
+    fun getAuthHeader(storedCredentials: String?): Map<String, String> {
+        if (storedCredentials == null) {
+            return mapOf(Pair("Authorization", "Basic "))  // no Authorization headers
+        }
         val basicAuthToken = base64Encode(storedCredentials.toByteArray())  // will this be loaded when not using the provider ??? can increase load
-        println("using getAuthHeader: $storedCredentials")
         return mapOf(Pair("Authorization", "Basic $basicAuthToken"))
     }
 
@@ -209,9 +211,7 @@ class NginxProvider : MainAPI() {
         if (mainUrl == "null"){
             throw ErrorLoadingException("No nginx url specified in the settings: Nginx Settigns > Nginx server url, try again in a few seconds")
         }
-        println("gettingmainurl: $mainUrl")
         val document = app.get(mainUrl, authHeader).document
-        println(document)
         val categories = document.select("a")
         val returnList = categories.mapNotNull {
             val categoryPath = mainUrl + it.attr("href") ?: return@mapNotNull null // get the url of the category; like http://192.168.1.10/media/Movies/
@@ -224,7 +224,6 @@ class NginxProvider : MainAPI() {
                         try {
                             val mediaRootUrl =
                                 categoryPath + head.attr("href")// like http://192.168.1.10/media/Series/Chernobyl/
-                            println(mediaRootUrl)
                             val mediaDocument = app.get(mediaRootUrl, authHeader).document
                             val nfoFilename = mediaDocument.getElementsByAttributeValueContaining(
                                 "href",
