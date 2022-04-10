@@ -43,10 +43,12 @@ class NginxProvider : MainAPI() {
             val description = metadataDocument.selectFirst("plot").text()
 
             val poster = metadataDocument.selectFirst("thumb").text()
-            val trailer = metadataDocument.selectFirst("trailer")?.text()?.replace(
-                "plugin://plugin.video.youtube/play/?video_id=",
-                "https://www.youtube.com/watch?v="
-            )
+            val trailer = metadataDocument.select("trailer")?.mapNotNull {
+               it?.text()?.replace(
+                   "plugin://plugin.video.youtube/play/?video_id=",
+                   "https://www.youtube.com/watch?v="
+               )
+            }
             val partialUrl = mediaRootDocument.getElementsByAttributeValueContaining("href", ".nfo").attr("href").replace(".nfo", ".")
             val date = metadataDocument.selectFirst("year")?.text()?.toIntOrNull()
             val ratingAverage = metadataDocument.selectFirst("value")?.text()?.toIntOrNull()
@@ -109,14 +111,14 @@ class NginxProvider : MainAPI() {
                 val season =
                     element.attr("href")?.replace("Season%20", "")?.replace("/", "")?.toIntOrNull()
                 val href = mediaRootUrl + element.attr("href")
-                if (season != null && season > 0 && !href.isNullOrBlank()) {
+                if (season != null && season > 0 && href.isNotBlank()) {
                     list.add(Pair(season, href))
                 }
             }
 
             if (list.isEmpty()) throw ErrorLoadingException("No Seasons Found")
 
-            val episodeList = ArrayList<TvSeriesEpisode>()
+            val episodeList = ArrayList<Episode>()
 
 
             list.apmap { (seasonInt, seasonString) ->
@@ -134,7 +136,7 @@ class NginxProvider : MainAPI() {
                         val name = nfoDocument.selectFirst("title").text()
                         // val seasonInt = nfoDocument.selectFirst("season").text().toIntOrNull()
                         val date = nfoDocument.selectFirst("aired")?.text()
-                        val description = nfoDocument.selectFirst("plot")?.text()
+                        val plot = nfoDocument.selectFirst("plot")?.text()
 
                         val dataList = seasonDocument.getElementsByAttributeValueContaining(
                             "href",
@@ -142,19 +144,15 @@ class NginxProvider : MainAPI() {
                         )
                         val data = seasonString + dataList.firstNotNullOf { item -> item.takeIf { (!it.attr("href").contains(".nfo") &&  !it.attr("href").contains(".jpg"))} }.attr("href").toString()  // exclude poster and nfo (metadata) file
 
-
-
                         episodeList.add(
-                            TvSeriesEpisode(
-                                name,
-                                seasonInt,
-                                epNum,
-                                data,
-                                poster,
-                                date,
-                                null,
-                                description,
-                            )
+                            newEpisode(data) {
+                                    this.name = name
+                                    this.season = seasonInt
+                                    this.episode = epNum
+                                    this.posterUrl = poster
+                                    addDate(date)
+                                    this.description = plot
+                            }
                         )
                     }
                 }
