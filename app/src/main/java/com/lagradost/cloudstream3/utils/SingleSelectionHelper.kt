@@ -150,6 +150,7 @@ object SingleSelectionHelper {
         dialog: Dialog,
         value: String,
         name: String,
+        textInputType: Int?,
         callback: (String) -> Unit,
         dismissCallback: () -> Unit
     ) {
@@ -160,9 +161,11 @@ object SingleSelectionHelper {
         val applyHolder = dialog.findViewById<LinearLayout>(R.id.apply_btt_holder)!!
 
         applyHolder.isVisible = true
-        println(value)
         textView.text = name
 
+        if (textInputType != null) {
+            inputView.inputType = textInputType // 16 for website url input type
+        }
         inputView.setText(value, TextView.BufferType.EDITABLE)
 
 
@@ -250,10 +253,11 @@ object SingleSelectionHelper {
     }
 
         fun Activity.showNginxTextInputDialog(
-        name: String,
-        value: String,
-        dismissCallback: () -> Unit,
-        callback: (String) -> Unit,
+            name: String,
+            value: String,
+            textInputType: Int?,
+            dismissCallback: () -> Unit,
+            callback: (String) -> Unit,
     ) {
         val builder = BottomSheetDialog(this)  // probably the stuff at the bottom
         builder.setContentView(R.layout.bottom_input_dialog)  // input layout
@@ -263,6 +267,7 @@ object SingleSelectionHelper {
             builder,
             value,
             name,
+            textInputType,  // type is a uri
             { callback.invoke(it) },
             dismissCallback
         )
