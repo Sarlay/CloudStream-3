@@ -6,12 +6,12 @@ import com.lagradost.cloudstream3.*
 import com.lagradost.cloudstream3.APIHolder.getCaptchaToken
 import com.lagradost.cloudstream3.APIHolder.unixTimeMS
 import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
-import com.lagradost.cloudstream3.LoadResponse.Companion.setDuration
+import com.lagradost.cloudstream3.LoadResponse.Companion.addDuration
+import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.animeproviders.ZoroProvider
 import com.lagradost.cloudstream3.mvvm.suspendSafeApiCall
 import com.lagradost.cloudstream3.network.AppResponse
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
-import com.lagradost.cloudstream3.utils.AppUtils.toJson
 import com.lagradost.cloudstream3.utils.AppUtils.tryParseJson
 import com.lagradost.cloudstream3.utils.Coroutines.ioSafe
 import com.lagradost.cloudstream3.utils.ExtractorLink
@@ -214,21 +214,21 @@ open class SflixProvider : MainAPI() {
 
             val comingSoon = sourceIds.isEmpty()
 
-            return newMovieLoadResponse(title, url, TvType.Movie, sourceIds.toJson()) {
+            return newMovieLoadResponse(title, url, TvType.Movie, sourceIds) {
                 this.year = year
                 this.posterUrl = posterUrl
                 this.plot = plot
-                setDuration(duration)
+                addDuration(duration)
                 addActors(cast)
                 this.tags = tags
                 this.recommendations = recommendations
                 this.comingSoon = comingSoon
-                this.trailerUrl = youtubeTrailer
+                addTrailer(youtubeTrailer)
                 this.rating = rating
             }
         } else {
             val seasonsDocument = app.get("$mainUrl/ajax/v2/tv/seasons/$id").document
-            val episodes = arrayListOf<TvSeriesEpisode>()
+            val episodes = arrayListOf<Episode>()
             var seasonItems = seasonsDocument.select("div.dropdown-menu.dropdown-menu-model > a")
             if (seasonItems.isNullOrEmpty())
                 seasonItems = seasonsDocument.select("div.dropdown-menu > a.dropdown-item")
@@ -260,13 +260,12 @@ open class SflixProvider : MainAPI() {
                         } ?: episode
 
                     episodes.add(
-                        TvSeriesEpisode(
-                            episodeTitle?.removePrefix("Episode $episodeNum: "),
-                            season + 1,
-                            episodeNum,
-                            Pair(url, episodeData).toJson(),
-                            fixUrlNull(episodePosterUrl)
-                        )
+                        newEpisode(Pair(url, episodeData)) {
+                            this.posterUrl = fixUrlNull(episodePosterUrl)
+                            this.name = episodeTitle?.removePrefix("Episode $episodeNum: ")
+                            this.season = season + 1
+                            this.episode = episodeNum
+                        }
                     )
                 }
             }
@@ -275,11 +274,11 @@ open class SflixProvider : MainAPI() {
                 this.posterUrl = posterUrl
                 this.year = year
                 this.plot = plot
-                setDuration(duration)
+                addDuration(duration)
                 addActors(cast)
                 this.tags = tags
                 this.recommendations = recommendations
-                this.trailerUrl = youtubeTrailer
+                addTrailer(youtubeTrailer)
                 this.rating = rating
             }
         }
@@ -370,7 +369,8 @@ open class SflixProvider : MainAPI() {
         val posterUrl = img.attr("data-src") ?: img.attr("src")
         val href = fixUrl(inner.select("a").attr("href"))
         val isMovie = href.contains("/movie/")
-        val otherInfo = this.selectFirst("div.film-detail > div.fd-infor")?.select("span")?.toList() ?: listOf()
+        val otherInfo =
+            this.selectFirst("div.film-detail > div.fd-infor")?.select("span")?.toList() ?: listOf()
         //var rating: Int? = null
         var year: Int? = null
         var quality: SearchQuality? = null

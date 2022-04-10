@@ -111,7 +111,7 @@ object CommonActivity {
         //https://stackoverflow.com/questions/52594181/how-to-know-if-user-has-disabled-picture-in-picture-feature-permission
         //https://developer.android.com/guide/topics/ui/picture-in-picture
         canShowPipMode =
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && // OS SUPPORT
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && // OS SUPPORT
                     act.packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE) && // HAS FEATURE, MIGHT BE BLOCKED DUE TO POWER DRAIN
                     act.hasPIPPermission() // CHECK IF FEATURE IS ENABLED IN SETTINGS
 
@@ -159,7 +159,13 @@ object CommonActivity {
         val currentOverlayTheme =
             when (settingsManager.getString(act.getString(R.string.primary_color_key), "Normal")) {
                 "Normal" -> R.style.OverlayPrimaryColorNormal
-                "Blue" -> R.style.OverlayPrimaryColorBlue
+                "CarnationPink" -> R.style.OverlayPrimaryColorCarnationPink
+                "DarkGreen" -> R.style.OverlayPrimaryColorDarkGreen
+                "Maroon" -> R.style.OverlayPrimaryColorMaroon
+                "NavyBlue" -> R.style.OverlayPrimaryColorNavyBlue
+                "Grey" -> R.style.OverlayPrimaryColorGrey
+                "White" -> R.style.OverlayPrimaryColorWhite
+                "Brown" -> R.style.OverlayPrimaryColorBrown
                 "Purple" -> R.style.OverlayPrimaryColorPurple
                 "Green" -> R.style.OverlayPrimaryColorGreen
                 "GreenApple" -> R.style.OverlayPrimaryColorGreenApple
