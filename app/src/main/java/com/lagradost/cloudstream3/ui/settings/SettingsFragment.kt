@@ -483,7 +483,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             activity?.showNginxTextInputDialog(
                 settingsManager.getString(getString(R.string.nginx_url_pref), "Nginx server url").toString(),
                 settingsManager.getString(getString(R.string.nginx_url_key), "").toString(),  // key: the actual you use rn
-                16,
+                android.text.InputType.TYPE_TEXT_VARIATION_URI,  // uri
                 {}) {
                 settingsManager.edit()
                     .putString(getString(R.string.nginx_url_key), it).apply()  // change the stored url in nginx_url_key to it
@@ -496,7 +496,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             activity?.showNginxTextInputDialog(
                 settingsManager.getString(getString(R.string.nginx_credentials_title), "Nginx Credentials").toString(),
                 settingsManager.getString(getString(R.string.nginx_credentials), "").toString(),  // key: the actual you use rn
-                16,
+                android.text.InputType.TYPE_TEXT_VARIATION_URI,
                 {}) {
                 settingsManager.edit()
                     .putString(getString(R.string.nginx_credentials), it).apply()  // change the stored url in nginx_url_key to it

@@ -1,6 +1,7 @@
 package com.lagradost.cloudstream3.movieproviders
 
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.LoadResponse.Companion.addRating
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.TvType
 import com.lagradost.cloudstream3.app
@@ -8,9 +9,8 @@ import com.lagradost.cloudstream3.utils.Qualities
 import java.lang.Exception
 
 class NginxProvider : MainAPI() {
-    override var mainUrl = "null"  // TO CHANGE
     override var name = "Nginx"
-    override var storedCredentials: String? = null
+    override var storedCredentials: String? = null // needed ??
     override val hasQuickSearch = false
     override val hasMainPage = true
     override val supportedTypes = setOf(TvType.AnimeMovie, TvType.TvSeries, TvType.Movie)
@@ -37,11 +37,11 @@ class NginxProvider : MainAPI() {
 
         val isMovie = !nfoUrl.contains("tvshow.nfo")
 
+        val title = metadataDocument.selectFirst("title").text()
+
+        val description = metadataDocument.selectFirst("plot").text()
+
         if (isMovie) {
-            val title = metadataDocument.selectFirst("title").text()
-
-            val description = metadataDocument.selectFirst("plot").text()
-
             val poster = metadataDocument.selectFirst("thumb").text()
             val trailer = metadataDocument.select("trailer")?.mapNotNull {
                it?.text()?.replace(
@@ -85,9 +85,6 @@ class NginxProvider : MainAPI() {
             )
         } else  // a tv serie
         {
-            val title = metadataDocument.selectFirst("title").text()
-
-            val description = metadataDocument.selectFirst("plot").text()
 
             val list = ArrayList<Pair<Int, String>>()
             val mediaRootUrl = url.replace("tvshow.nfo", "")
@@ -127,7 +124,6 @@ class NginxProvider : MainAPI() {
                     "href",
                     ".nfo"
                 ) // get metadata
-                if (episodes.isNotEmpty()) {
                     episodes.forEach { episode ->
                         val nfoDocument = app.get(seasonString + episode.attr("href"), authHeader).document // get episode metadata file
                         val epNum = nfoDocument.selectFirst("episode")?.text()?.toIntOrNull()
@@ -155,25 +151,15 @@ class NginxProvider : MainAPI() {
                             }
                         )
                     }
-                }
             }
-            return TvSeriesLoadResponse(
-                title,
-                url,
-                this.name,
-                TvType.TvSeries,
-                episodeList,
-                posterUrl,
-                null,
-                description,
-                null,
-                null,
-                tagsList,
-                null,
-                null,
-                null,
-                null,
-            )
+            return newTvSeriesLoadResponse(title, url, TvType.TvSeries, episodeList) {
+                this.name = title
+                this.url = url
+                this.posterUrl = posterUrl
+                this.episodes = episodeList
+                this.plot = description
+                this.tags = tagsList
+            }
         }
 
     }
@@ -206,7 +192,7 @@ class NginxProvider : MainAPI() {
 
     override suspend fun getMainPage(): HomePageResponse? {
         val authHeader = getAuthHeader(storedCredentials)  // call again because it isn't reloaded if in main class and storedCredentials loads after
-        if (mainUrl == "null"){
+        if (mainUrl == "NONE"){
             throw ErrorLoadingException("No nginx url specified in the settings: Nginx Settigns > Nginx server url, try again in a few seconds")
         }
         val document = app.get(mainUrl, authHeader).document
@@ -258,8 +244,6 @@ class NginxProvider : MainAPI() {
                                     this.name,
                                     TvType.TvSeries,
                                     posterUrl,
-                                    null,
-                                    null,
                                     null,
                                     null,
                                 )

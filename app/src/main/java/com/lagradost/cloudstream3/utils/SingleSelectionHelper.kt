@@ -232,7 +232,7 @@ object SingleSelectionHelper {
         selectedIndex: Int,
         name: String,
         showApply: Boolean,
-        dismissCallback: () -> Unit,
+         dismissCallback: () -> Unit,
         callback: (Int) -> Unit,
     ) {
         val builder =
@@ -268,7 +268,7 @@ object SingleSelectionHelper {
             value,
             name,
             textInputType,  // type is a uri
-            { callback.invoke(it) },
+            callback,
             dismissCallback
         )
     }
