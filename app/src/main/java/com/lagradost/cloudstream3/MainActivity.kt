@@ -366,16 +366,25 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
         try {
             val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
             val nginxUrl =
-                settingsManager.getString(getString(R.string.nginx_url_key), "null").toString()
+                settingsManager.getString(getString(R.string.nginx_url_key), "nginx_url_key").toString()
             val nginxCredentials =
-                settingsManager.getString(getString(R.string.nginx_credentials), "null:null")
+                settingsManager.getString(getString(R.string.nginx_credentials), "nginx_credentials")
                     .toString()
-            data[NginxProvider().javaClass.simpleName] = ProvidersInfoJson(
-                url = nginxUrl,
-                name = NginxProvider().name,
-                status = PROVIDER_STATUS_OK,
-                credentials = nginxCredentials
-            )
+            if (nginxUrl == "nginx_url_key" || nginxUrl == "") { // if key is default value, or empty:
+                data[NginxProvider().javaClass.simpleName] = ProvidersInfoJson(
+                    url = nginxUrl,
+                    name = NginxProvider().name,
+                    status = PROVIDER_STATUS_DOWN,  // the provider will not be display
+                    credentials = nginxCredentials
+                )
+            } else {  // valid url
+                data[NginxProvider().javaClass.simpleName] = ProvidersInfoJson(
+                    url = nginxUrl,
+                    name = NginxProvider().name,
+                    status = PROVIDER_STATUS_OK,
+                    credentials = nginxCredentials
+                )
+            }
 
             return data
         } catch (e: Exception) {
@@ -386,9 +395,18 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
     fun createJson() : ProvidersInfoJson? { //java.util.HashMap<String, ProvidersInfoJson>
         return try {
             val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
-            val nginxUrl = settingsManager.getString(getString(R.string.nginx_url_key), "null").toString()
-            val nginxCredentials = settingsManager.getString(getString(R.string.nginx_credentials), "null:null").toString()
-            ProvidersInfoJson(url = nginxUrl, name = NginxProvider().name, status = PROVIDER_STATUS_OK, credentials = nginxCredentials)
+            val nginxUrl = settingsManager.getString(getString(R.string.nginx_url_key), "nginx_url_key").toString()
+            val nginxCredentials = settingsManager.getString(getString(R.string.nginx_credentials), "nginx_credentials").toString()
+            if (nginxUrl == "nginx_url_key" || nginxUrl == "") { // if key is default value or empty:
+                null // don't overwrite anything
+            } else {
+                ProvidersInfoJson(
+                    url = nginxUrl,
+                    name = NginxProvider().name,
+                    status = PROVIDER_STATUS_OK,
+                    credentials = nginxCredentials
+                )
+            }
         } catch (e: Exception) {
             logError(e)
             null
@@ -468,7 +486,7 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
                 val nginxProviderIndex = apis.indexOf(APIHolder.getApiFromName(nginxProviderName))
                 val createdJsonProvider = createJson()
                 if (createdJsonProvider != null) {
-                    apis[nginxProviderIndex].overrideWithNewData(createdJsonProvider)
+                    apis[nginxProviderIndex].overrideWithNewData(createdJsonProvider) // people will have access to it if they disable metadata check (they are not filtered)
                 }
             } catch (e: Exception) {
                 logError(e)
