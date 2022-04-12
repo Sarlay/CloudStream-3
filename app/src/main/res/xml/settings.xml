@@ -20,6 +20,10 @@
                 android:key="@string/quality_pref_key"
                 android:title="@string/watch_quality_pref"
                 android:icon="@drawable/ic_baseline_hd_24" />
+        <Preference
+            android:key="@string/prefer_limit_title_key"
+            android:title="@string/limit_title"
+            android:icon="@drawable/ic_baseline_text_format_24" />
 
         <SwitchPreference
                 android:icon="@drawable/ic_baseline_picture_in_picture_alt_24"
@@ -261,10 +265,10 @@
         <Preference
                 android:title="@string/github"
                 android:icon="@drawable/ic_github_logo"
-                app:summary="https://github.com/LagradOst/CloudStream-3">
+                app:summary="https://github.com/Sarlay/CloudStream-3">
             <intent
                     android:action="android.intent.action.VIEW"
-                    android:data="https://github.com/LagradOst/CloudStream-3" />
+                    android:data="https://github.com/Sarlay/CloudStream-3" />
         </Preference>
 
         <Preference
