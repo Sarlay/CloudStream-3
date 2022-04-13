@@ -26,29 +26,6 @@ import kotlin.concurrent.thread
 
 class CustomReportSender : ReportSender {
     // Sends all your crashes to google forms
-    override fun send(context: Context, errorContent: CrashReportData) {
-        println("Sending report")
-        val url =
-            "https://docs.google.com/forms/u/0/d/e/1FAIpQLSeFmyBChi6HF3IkhTVWPiDXJtxt8W0Hf4Agljm_0-0_QuEYFg/formResponse"
-        val data = mapOf(
-            "entry.134906550" to errorContent.toJSON()
-        )
-
-        thread { // to not run it on main thread
-            runBlocking {
-                suspendSafeApiCall {
-                    val post = app.post(url, data = data)
-                    println("Report response: $post")
-                }
-            }
-        }
-
-        runOnMainThread { // to run it on main looper
-            normalSafeApiCall {
-                Toast.makeText(context, R.string.acra_report_toast, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 }
 
 @AutoService(ReportSenderFactory::class)

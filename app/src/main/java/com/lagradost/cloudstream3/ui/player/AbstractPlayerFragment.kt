@@ -45,7 +45,7 @@ import kotlinx.android.synthetic.main.player_custom_layout.*
 
 enum class PlayerResize(@StringRes val nameRes: Int) {
     Fit(R.string.resize_fit),
-    Fill(R.string.resize_fill),
+    // Fill(R.string.resize_fill),
     Zoom(R.string.resize_zoom),
 }
 
@@ -406,7 +406,7 @@ abstract class AbstractPlayerFragment(
     fun resize(resize: PlayerResize, showToast: Boolean) {
         setKey(RESIZE_MODE_KEY, resize.ordinal)
         val type = when (resize) {
-            PlayerResize.Fill -> AspectRatioFrameLayout.RESIZE_MODE_FILL
+            // PlayerResize.Fill -> AspectRatioFrameLayout.RESIZE_MODE_FILL
             PlayerResize.Fit -> AspectRatioFrameLayout.RESIZE_MODE_FIT
             PlayerResize.Zoom -> AspectRatioFrameLayout.RESIZE_MODE_ZOOM
         }

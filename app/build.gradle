@@ -52,13 +52,15 @@ android {
 
     buildTypes {
         release {
+            applicationIdSuffix ".sarlaysfork"
+            versionNameSuffix '-FORK'
             debuggable false
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         prerelease {
-            applicationIdSuffix ".prerelease"
+            applicationIdSuffix ".prerelease.sarlaysfork"
             buildConfigField("boolean", "BETA", "true")
             signingConfig signingConfigs.prerelease
             versionNameSuffix '-PRE'
