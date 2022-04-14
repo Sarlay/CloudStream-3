@@ -14,13 +14,6 @@ import com.lagradost.cloudstream3.utils.DataStore.removeKey
 import com.lagradost.cloudstream3.utils.DataStore.removeKeys
 import com.lagradost.cloudstream3.utils.DataStore.setKey
 import kotlinx.coroutines.runBlocking
-import org.acra.ReportField
-import org.acra.config.CoreConfiguration
-import org.acra.data.CrashReportData
-import org.acra.data.StringFormat
-import org.acra.ktx.initAcra
-import org.acra.sender.ReportSender
-import org.acra.sender.ReportSenderFactory
 import java.lang.ref.WeakReference
 import kotlin.concurrent.thread
 
@@ -30,25 +23,6 @@ class AcraApplication : Application() {
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
         context = base
-
-        initAcra {
-            //core configuration:
-            buildConfigClass = BuildConfig::class.java
-            reportFormat = StringFormat.JSON
-
-            reportContent = arrayOf(
-                ReportField.BUILD_CONFIG, ReportField.USER_CRASH_DATE,
-                ReportField.ANDROID_VERSION, ReportField.PHONE_MODEL,
-                ReportField.STACK_TRACE
-            )
-
-            // removed this due to bug when starting the app, moved it to when it actually crashes
-            //each plugin you chose above can be configured in a block like this:
-            /*toast {
-                text = getString(R.string.acra_report_toast)
-                //opening this block automatically enables the plugin.
-            }*/
-        }
     }
 
     companion object {
