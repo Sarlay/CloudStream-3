@@ -285,12 +285,12 @@
         "url": "https://www.vmovee.watch"
     },
     "VfFilmProvider": {
-        "name": "vf-film.me",
-        "status": 1,
+        "name": "vf-film",
+        "status": 0,
         "url": "https://vf-film.me"
     },
     "VfSerieProvider": {
-        "name": "vf-serie.org",
+        "name": "vf-serie",
         "status": 1,
         "url": "https://vf-serie.org"
     },
@@ -316,7 +316,7 @@
     },
     "ZoroProvider": {
         "name": "Zoro",
-        "status": 1,
+        "status": 0,
         "url": "https://zoro.to"
     }
 }
