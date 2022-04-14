@@ -24,20 +24,7 @@ import org.acra.sender.ReportSenderFactory
 import java.lang.ref.WeakReference
 import kotlin.concurrent.thread
 
-class CustomReportSender : ReportSender {
-    // Sends all your crashes to google forms
-}
 
-@AutoService(ReportSenderFactory::class)
-class CustomSenderFactory : ReportSenderFactory {
-    override fun create(context: Context, config: CoreConfiguration): ReportSender {
-        return CustomReportSender()
-    }
-
-    override fun enabled(config: CoreConfiguration): Boolean {
-        return true
-    }
-}
 
 class AcraApplication : Application() {
     override fun attachBaseContext(base: Context?) {
