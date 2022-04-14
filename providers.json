@@ -252,11 +252,11 @@
     "VfFilmProvider": {
         "name": "vf-film.me",
         "url": "https://vf-film.me",
-        "status": 1
+        "status": 0
     },
     "VfSerieProvider": {
         "name": "vf-serie.org",
-        "url": "https://vf-serie.org",
+        "url": "https://vf-serie.site",
         "status": 1
     },
     "VidEmbedProvider": {
