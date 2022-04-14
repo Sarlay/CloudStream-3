@@ -250,12 +250,12 @@
         "status": 1
     },
     "VfFilmProvider": {
-        "name": "vf-film.me",
-        "url": "https://vf-film.me",
+        "name": "vf-film",
+        "url": "https://vf-film.co",
         "status": 0
     },
     "VfSerieProvider": {
-        "name": "vf-serie.org",
+        "name": "vf-serie",
         "url": "https://vf-serie.site",
         "status": 1
     },
