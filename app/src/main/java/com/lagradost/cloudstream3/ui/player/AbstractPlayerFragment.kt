@@ -395,7 +395,11 @@ abstract class AbstractPlayerFragment(
     }
 
     fun nextResize() {
-        resizeMode = (resizeMode + 1) % PlayerResize.values().size
+        resizeMode = if (resizeMode == AspectRatioFrameLayout.RESIZE_MODE_FIT) {
+            1 // zoom into video
+        } else {
+            0 // fit to screen
+        }
         resize(resizeMode, true)
     }
 
