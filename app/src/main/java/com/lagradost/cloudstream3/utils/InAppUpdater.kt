@@ -179,7 +179,6 @@ class InAppUpdater {
 
         private fun Activity.downloadUpdate(url: String): Boolean {
             val downloadManager = getSystemService<DownloadManager>()!!
-
             val request = DownloadManager.Request(Uri.parse(url))
                 .setMimeType("application/vnd.android.package-archive")
                 .setTitle("CloudStream Update")
