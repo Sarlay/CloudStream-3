@@ -201,13 +201,6 @@
                 android:icon="@drawable/ic_baseline_warning_24" />
 
         <SwitchPreference
-                android:key="acra.disable"
-                android:icon="@drawable/ic_baseline_bug_report_24"
-                android:title="@string/pref_disable_acra"
-                android:summaryOff="@string/bug_report_settings_off"
-                android:summaryOn="@string/bug_report_settings_on"
-                android:defaultValue="true" />
-        <SwitchPreference
                 app:key="@string/auto_update_key"
                 android:title="@string/updates_settings"
                 android:summary="@string/updates_settings_des"
@@ -217,7 +210,7 @@
                 app:key="@string/prerelease_update_key"
                 android:title="@string/uprereleases_settings"
                 android:summary="@string/uprereleases_settings_des"
-                app:defaultValue="false"
+                app:defaultValue="true"
                 android:icon="@drawable/ic_baseline_developer_mode_24" />
         <Preference
                 android:title="@string/check_for_update"
