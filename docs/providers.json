@@ -179,11 +179,6 @@
         "status": 1,
         "url": "https://mycima.tv"
     },
-    "NginxProvider": {
-        "name": "Nginx",
-        "status": 1,
-        "url": ""
-    },
     "NineAnimeProvider": {
         "name": "9Anime",
         "status": 1,
