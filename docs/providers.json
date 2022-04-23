@@ -179,11 +179,6 @@
         "status": 1,
         "url": "https://mycima.tv"
     },
-    "NginxProvider": {
-        "name": "Nginx",
-        "status": 1,
-        "url": ""
-    },
     "NineAnimeProvider": {
         "name": "9Anime",
         "status": 1,
@@ -228,6 +223,11 @@
         "name": "Pinoy Movies",
         "status": 1,
         "url": "https://pinoymovies.es"
+    },
+    "RadarrProvider": {
+        "name": "Radarr",
+        "status": 1,
+        "url": ""
     },
     "SeriesflixProvider": {
         "name": "Seriesflix",
