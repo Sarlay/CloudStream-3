@@ -42,9 +42,11 @@ for path in glob(GLOB):
         except Exception as ex:
             print("{0}: {1}".format(path, ex))
             
+
+blacklist = ["NginxProvider"]
 # add sites from old_sites that are missing in new list
 for name in old_sites.keys():
-    if name not in sites.keys() and name is not "NginxProvider":
+    if name not in sites.keys() and name not in blacklist:
         sites[name] = {
             "name": old_sites[name]['name'],
             "url": old_sites[name]['url'],
