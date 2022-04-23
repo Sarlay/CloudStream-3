@@ -188,7 +188,7 @@ class NginxProvider : MainAPI() {
 
     override suspend fun getMainPage(): HomePageResponse {
         val authHeader = getAuthHeader(storedCredentials)  // call again because it isn't reloaded if in main class and storedCredentials loads after
-        if (mainUrl == "NONE"){
+        if (mainUrl == "NONE" || mainUrl == "" || mainUrl == "nginx_url_key"){
             throw ErrorLoadingException("No nginx url specified in the settings: Nginx Settigns > Nginx server url, try again in a few seconds")
         }
         val document = app.get(mainUrl, authHeader).document
