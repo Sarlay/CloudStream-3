@@ -109,7 +109,6 @@ object APIHolder {
             KawaiifuProvider(), // disabled due to cloudflare
             //MultiAnimeProvider(),
 	        NginxProvider(),
-            RadarrProvider(),
         )
     }
 
