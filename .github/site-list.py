@@ -11,7 +11,7 @@ URL_REGEX = compile(
 NAME_REGEX = compile("([A-Za-z0-9]+)(?:.kt)$")
 JSON_PATH = "docs/providers.json"
 GLOB = "app/src/main/java/com/lagradost/cloudstream3/*providers/*Provider.kt"
-
+blacklist = ["NginxProvider"]
 old_sites: Dict[str, Dict] = load(open(JSON_PATH, "r", encoding="utf-8"))
 sites: Dict[str, Dict] = {}
 
@@ -29,7 +29,7 @@ for path in glob(GLOB):
                     "url": provider_url if provider_url else old_sites[name]['url'],
                     "status": old_sites[name]['status']
                 }
-            else: # if not in previous list add with new data
+            elif name not in old_sites_key() and name not in blacklist: # if not in previous list add with new data
                 display_name = name
                 if display_name.endswith("Provider"):
                     display_name = display_name[:-len("Provider")]
@@ -43,7 +43,7 @@ for path in glob(GLOB):
             print("{0}: {1}".format(path, ex))
             
 
-blacklist = ["NginxProvider"]
+
 # add sites from old_sites that are missing in new list
 for name in old_sites.keys():
     if name not in sites.keys() and name not in blacklist:
