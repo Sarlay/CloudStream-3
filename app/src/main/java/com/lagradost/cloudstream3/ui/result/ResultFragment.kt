@@ -145,17 +145,17 @@ fun ResultEpisode.getDisplayPosition(): Long {
 
 fun buildResultEpisode(
     headerName: String,
-    name: String?,
-    poster: String?,
+    name: String? = null,
+    poster: String? = null,
     episode: Int,
-    season: Int?,
+    season: Int? = null,
     data: String,
     apiName: String,
     id: Int,
     index: Int,
-    rating: Int?,
-    description: String?,
-    isFiller: Boolean?,
+    rating: Int? = null,
+    description: String? = null,
+    isFiller: Boolean? = null,
     tvType: TvType,
     parentId: Int,
 ): ResultEpisode {
@@ -267,13 +267,14 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         }
 
         private fun getFolder(currentType: TvType, titleName: String): String {
+            val sanitizedFileName = sanitizeFilename(titleName)
             return when (currentType) {
-                TvType.Anime -> "Anime/$titleName"
+                TvType.Anime -> "Anime/$sanitizedFileName"
                 TvType.Movie -> "Movies"
                 TvType.AnimeMovie -> "Movies"
-                TvType.TvSeries -> "TVSeries/$titleName"
+                TvType.TvSeries -> "TVSeries/$sanitizedFileName"
                 TvType.OVA -> "OVA"
-                TvType.Cartoon -> "Cartoons/$titleName"
+                TvType.Cartoon -> "Cartoons/$sanitizedFileName"
                 TvType.Torrent -> "Torrent"
                 TvType.Documentary -> "Documentaries"
                 TvType.AsianDrama -> "AsianDrama"
@@ -673,7 +674,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         result_cast_items?.let {
             PanelsChildGestureRegionObserver.Provider.get().register(it)
         }
-        result_cast_items?.adapter = ActorAdaptor(mutableListOf())
+        result_cast_items?.adapter = ActorAdaptor()
         fixGrid()
         result_recommendations?.spanCount = 3
         result_overlapping_panels?.setStartPanelLockState(OverlappingPanelsLayout.LockState.CLOSE)
@@ -1478,6 +1479,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             when (startAction) {
                 START_ACTION_RESUME_LATEST -> {
                     for (ep in episodeList) {
+                        println("WATCH STATUS::: S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
                         if (ep.getWatchProgress() > 0.90f) { // watched too much
                             continue
                         }
@@ -1488,6 +1490,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 START_ACTION_LOAD_EP -> {
                     for (ep in episodeList) {
                         if (ep.id == startValue) { // watched too much
+                            println("WATCH STATUS::: START_ACTION_LOAD_EP S${ep.season} E ${ep.episode} - ${ep.getWatchProgress()}")
                             handleAction(EpisodeClickEvent(ACTION_PLAY_EPISODE_IN_PLAYER, ep))
                             break
                         }
