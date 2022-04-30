@@ -1,13 +1,11 @@
 package com.lagradost.cloudstream3.movieproviders
 
 import com.lagradost.cloudstream3.*
-import com.lagradost.cloudstream3.LoadResponse.Companion.addDuration
-import com.lagradost.cloudstream3.LoadResponse.Companion.addRating
+import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
+import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.ExtractorLink
-import com.lagradost.cloudstream3.TvType
-import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.utils.Qualities
-import java.lang.Exception
+import com.lagradost.cloudstream3.utils.SubtitleHelper
 
 class NginxProvider : MainAPI() {
     override var name = "Nginx"
@@ -25,60 +23,104 @@ class NginxProvider : MainAPI() {
         return mapOf(Pair("Authorization", "Basic $basicAuthToken"))
     }
 
-    override suspend fun load(url: String): LoadResponse {
+    override suspend fun load(url: String): LoadResponse? {
+
         val authHeader = getAuthHeader(storedCredentials)  // call again because it isn't reloaded if in main class and storedCredentials loads after
         // url can be tvshow.nfo for series or mediaRootUrl for movies
 
         val mediaRootDocument = app.get(url, authHeader).document
+        val isAFolder = url.endsWith("/")
 
-        val nfoUrl = url + mediaRootDocument.getElementsByAttributeValueContaining("href", ".nfo").attr("href")  // metadata url file
+        val metadataFile = mediaRootDocument.getElementsByAttributeValueContaining("href", ".nfo").attr("href")
+        val nfoUrl = url + metadataFile  // metadata url file
 
-        val metadataDocument = app.get(nfoUrl, authHeader).document  // get the metadata nfo file
+        val isSerie = nfoUrl.contains("tvshow.nfo")
 
-        val isMovie = !nfoUrl.contains("tvshow.nfo")
+        val metadataDocument =  if (metadataFile != null) {  // if metadata exist
+            app.get(nfoUrl, authHeader).document  // get the metadata nfo file
+        } else {
+            null
+        }
 
-        val title = metadataDocument.selectFirst("title").text()
+        val title = metadataDocument?.selectFirst("title")?.text() ?: url.substring(url.lastIndexOf("/") + 1)
 
-        val description = metadataDocument.selectFirst("plot").text()
+        val description = metadataDocument?.selectFirst("plot")?.text()
 
-        if (isMovie) {
-            val poster = metadataDocument.selectFirst("thumb").text()
-            val trailer = metadataDocument.select("trailer")?.mapNotNull {
-               it?.text()?.replace(
-                   "plugin://plugin.video.youtube/play/?video_id=",
-                   "https://www.youtube.com/watch?v="
-               )
-            }
-            val partialUrl = mediaRootDocument.getElementsByAttributeValueContaining("href", ".nfo").attr("href").replace(".nfo", ".")
-            val date = metadataDocument.selectFirst("year")?.text()?.toIntOrNull()
-            val ratingAverage = metadataDocument.selectFirst("value")?.text()?.toIntOrNull()
-            val tagsList = metadataDocument.select("genre")
-                ?.mapNotNull {   // all the tags like action, thriller ...
-                    it?.text()
+        if (!isSerie) {  // it's not a serie, its a movie (or smthing else idk)
+            if (metadataFile != null && isAFolder) {  // There is metadata and library is correctly organised!
+                val poster = metadataDocument?.selectFirst("thumb")?.text()
+                val trailer = metadataDocument?.select("trailer")?.mapNotNull {
+                    it?.text()?.replace(
+                        "plugin://plugin.video.youtube/play/?video_id=",
+                        "https://www.youtube.com/watch?v="
+                    )
+                }
 
+                val date = metadataDocument?.selectFirst("year")?.text()?.toIntOrNull()
+                val durationInMinutes = metadataDocument?.selectFirst("duration")?.text()?.toIntOrNull()
+                val ratingAverage = metadataDocument?.selectFirst("value")?.text()?.toIntOrNull()
+                val tagsList = metadataDocument?.select("genre")
+                    ?.mapNotNull {   // all the tags like action, thriller ...
+                        it?.text()
+                    }
+                val actors = metadataDocument?.select("actor")?.mapNotNull {
+                    val name = it?.selectFirst("name")?.text() ?: return@mapNotNull null
+                    val image = it.selectFirst("thumb")?.text() ?: return@mapNotNull null
+                    Actor(name, image)
+                }
+
+                val mkvElementsResult = mediaRootDocument.getElementsByAttributeValueContaining(  // list of all urls of the mkv url in the webpage
+                    "href",
+                    ".mkv"
+                )
+
+                val mp4ElementsResult = mediaRootDocument.getElementsByAttributeValueContaining(  // list of all urls of the webpage
+                    "href",
+                    ".mp4"
+                )
+
+
+                val dataList = if (mkvElementsResult.count() > 0) {  // there is probably a better way to do it
+                    mkvElementsResult[0].attr("href").toString()
+                } else {
+                    if(mp4ElementsResult.count() > 0) {
+                        mp4ElementsResult[0].attr("href").toString()
+                    } else {
+                        null
+                    }
                 }
 
 
-            val dataList = mediaRootDocument.getElementsByAttributeValueContaining(  // list of all urls of the webpage
-                "href",
-                partialUrl
-            )
+                if (dataList != null) {
+                    return newMovieLoadResponse(
+                        title,
+                        url,
+                        TvType.Movie,
+                        url + dataList,
+                    ) {
+                        this.year = date
+                        this.plot = description
+                        this.rating = ratingAverage
+                        this.tags = tagsList
+                        this.trailers = trailer
+                        this.duration = durationInMinutes
+                        addPoster(poster, authHeader)
+                        addActors(actors)
+                    }
 
-            val data = url + dataList.firstNotNullOf { item -> item.takeIf { (!it.attr("href").contains(".nfo") &&  !it.attr("href").contains(".jpg"))} }.attr("href").toString()  // exclude poster and nfo (metadata) file
-
-            return newMovieLoadResponse(
-                title,
-                url,
-                TvType.Movie,
-                data
-            ) {
-                this.year = date
-                this.plot = description
-                this.rating = ratingAverage
-                this.tags = tagsList
-                this.trailers = trailer
-                addPoster(poster, authHeader)
+                }
+            } else {
+                if (".mp4" in url || ".mkv" in url) {
+                    val fixedUrl = fixUrl(url)
+                    return newMovieLoadResponse(
+                        title,
+                        fixedUrl,
+                        TvType.Movie,
+                        fixedUrl,
+                    )
+                }
             }
+            return null
         } else  // a tv serie
         {
 
@@ -90,7 +132,7 @@ class NginxProvider : MainAPI() {
                 mediaRootDocument.getElementsByAttributeValueContaining("href", "Season%20")
 
 
-            val tagsList = metadataDocument.select("genre")
+            val tagsList = metadataDocument?.select("genre")
                 ?.mapNotNull {   // all the tags like action, thriller ...; unused variable
                     it?.text()
                 }
@@ -167,8 +209,31 @@ class NginxProvider : MainAPI() {
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ): Boolean {
-        // loadExtractor(data, null) { callback(it.copy(headers=authHeader)) }
-        val authHeader = getAuthHeader(storedCredentials)  // call again because it isn't reloaded if in main class and storedCredentials loads after
+        val authHeader =
+            getAuthHeader(storedCredentials)  // call again because it isn't reloaded if in main class and storedCredentials loads after
+
+        try {
+            val mediaRootUrl = data.substringBeforeLast("/")
+            val mediaRootDocument = app.get(mediaRootUrl, authHeader).document
+
+            val subtitlesElements = mediaRootDocument.getElementsByAttributeValueContaining(
+                // list of all urls of the mkv url in the webpage
+                "href",
+                ".srt", // all of subtitles files in the folder
+            )
+
+            subtitlesElements.forEach {
+                subtitleCallback.invoke(
+                    SubtitleFile(
+                        SubtitleHelper.fromTwoLettersToLanguage(it.attr("href").replace(".srt", "").substringAfterLast(".")) ?: "English",
+                        mediaRootUrl + "/" + it.attr("href")
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            logError(e)
+        }
+
         callback.invoke (
             ExtractorLink(
                 name,
@@ -180,67 +245,115 @@ class NginxProvider : MainAPI() {
                 authHeader,
             )
         )
-
         return true
     }
 
 
+    private fun cleanElement(elementUrl: String): String {
+         return if (elementUrl[0] == '/') {  // if starts by "/", remove it
+            elementUrl.drop(1)
+        } else {
+             elementUrl
+         }
+    }
 
     override suspend fun getMainPage(): HomePageResponse {
         val authHeader = getAuthHeader(storedCredentials)  // call again because it isn't reloaded if in main class and storedCredentials loads after
         if (mainUrl == "NONE" || mainUrl == "" || mainUrl == "nginx_url_key"){
-            throw ErrorLoadingException("No nginx url specified in the settings: Nginx Settigns > Nginx server url, try again in a few seconds")
+            throw ErrorLoadingException("No nginx url specified in the settings: Nginx Settigns > Nginx server url, try again in a few seconds") // getString(R.string.nginx_load_exception) or @strings/nginx_load_exception
         }
         val document = app.get(mainUrl, authHeader).document
-        val categories = document.select("a")
-        val returnList = categories.mapNotNull {
-            val categoryPath = mainUrl + it.attr("href") ?: return@mapNotNull null // get the url of the category; like http://192.168.1.10/media/Movies/
-            val categoryTitle = it.text()  // get the category title like Movies or Series
-            if (categoryTitle != "../" && categoryTitle != "Music/") {  // exclude parent dir and Music dir
+        val categories = document.select("a") // select all of the categories
+        val returnList = categories.mapNotNull {  // for each category
+            val categoryPath = mainUrl + cleanElement(it.attr("href")) // ?: return@mapNotNull null // get the url of the category; like http://192.168.1.10/media/Movies/
+            val categoryTitle = it.text()  // get the category title like Movies/ or Series/
+            if (categoryTitle != "../" && categoryTitle != "/") {  // exclude parent dir
                 val categoryDocument = app.get(categoryPath, authHeader).document // queries the page http://192.168.1.10/media/Movies/
-                val contentLinks = categoryDocument.select("a")
-                val currentList = contentLinks.mapNotNull { head ->
-                    if (head.attr("href") != "../") {
+                val contentLinks = categoryDocument.select("a")  // select all links
+                val currentList = contentLinks.mapNotNull { head ->  // for each of those elements
+                    val linkToElement = head.attr("href")
+                    if (linkToElement != "../" && linkToElement != "/") {
+                        val isAFolderBool = linkToElement.endsWith("/")
                         try {
                             val mediaRootUrl =
-                                categoryPath + head.attr("href")// like http://192.168.1.10/media/Series/Chernobyl/
-                            val mediaDocument = app.get(mediaRootUrl, authHeader).document
-                            val nfoFilename = mediaDocument.getElementsByAttributeValueContaining(
-                                "href",
-                                ".nfo"
-                            )[0].attr("href")
-                            val isMovieType = nfoFilename != "tvshow.nfo"
-                            val nfoPath =
-                                mediaRootUrl + nfoFilename // must exist or will raise errors, only the first one is taken
-                            val nfoContent =
-                                app.get(nfoPath, authHeader).document  // all the metadata
+                                categoryPath + cleanElement(linkToElement) // like http://192.168.1.10/Series/Chernobyl/ or http://192.168.1.10/Movies/zjfbfvz.mp4
+                            if (isAFolderBool) {  // content is organised in folders for each element
+
+                                /*
+                                ├── Movies
+                                     ├── Eternals (2021)   // the media root folder will be 'http://192.168.1.10/media/Movies/Eternals (2021)/'
+                                          ├── Eternals.2021.MULTi.WiTH.TRUEFRENCH.iMAX.1080p.DSNP.WEB-DL.DDP5.1.H264-FRATERNiTY.mkv
+                                          ├── Eternals.2021.MULTi.WiTH.TRUEFRENCH.iMAX.1080p.DSNP.WEB-DL.DDP5.1.H264-FRATERNiTY.en.srt
+                                          ├── Eternals.2021.MULTi.WiTH.TRUEFRENCH.iMAX.1080p.DSNP.WEB-DL.DDP5.1.H264-FRATERNiTY.nfo
+                                          ├── fanart.jpg
+                                          └── poster.jpg
+                                */
+
+                                val mediaDocument = app.get(mediaRootUrl, authHeader).document
+                                val nfoFilename = try {
+                                    mediaDocument.getElementsByAttributeValueContaining(
+                                        "href",
+                                        ".nfo"
+                                    )[0]?.attr("href")
+                                } catch (e: Exception) {
+                                    logError(e)
+                                    null
+                                }
+
+                                val isSerieType =
+                                    nfoFilename.toString() == "tvshow.nfo" // will be a movie if no metadata
 
 
-                            if (isMovieType) {
-                                val movieName = nfoContent.select("title").text()
-                                val posterUrl = mediaRootUrl + "poster.jpg"
+                                val nfoPath = if (nfoFilename != null) {
+                                    mediaRootUrl + nfoFilename // must exist or will raise errors, only the first one is taken
+                                } else {
+                                    null
+                                }
+
+                                val nfoContent = if (nfoPath != null) {
+                                    app.get(nfoPath, authHeader).document  // get all the metadata
+                                } else {
+                                    null
+                                }
+
+
+                                if (isSerieType) {
+                                    val serieName = nfoContent?.select("title")?.text() ?: linkToElement  // name of the media root foler
+
+                                    val posterUrl = mediaRootUrl + "poster.jpg"  // poster.jpg in the same folder
+
+                                    newTvSeriesSearchResponse(
+                                        serieName,
+                                        mediaRootUrl,
+                                        TvType.TvSeries,
+                                    ) {
+                                        addPoster(posterUrl, authHeader)
+                                    }
+                                } else {  // Movie
+                                    val movieName = nfoContent?.select("title")?.text() ?: linkToElement
+                                    val posterUrl = mediaRootUrl + "poster.jpg" // poster should be stored in the same folder
+                                    return@mapNotNull newMovieSearchResponse(
+                                        movieName,
+                                        mediaRootUrl,
+                                        TvType.Movie,
+                                    ) {
+                                        addPoster(posterUrl, authHeader)
+                                    }
+                                }
+                            } else {  // return direct file
+
+                                /*
+                                ├── Movies
+                                     ├── Eternals.2021.MULTi.WiTH.TRUEFRENCH.iMAX.1080p.DSNP.WEB-DL.DDP5.1.H264-FRATERNiTY.mkv  // the media root folder
+                                     ├── Juste la fin du monde (2016) VOF 1080p mHD x264 AC3-SANTACRUZ.mkv
+                                */
                                 return@mapNotNull newMovieSearchResponse(
-                                    movieName,
+                                    linkToElement,
                                     mediaRootUrl,
                                     TvType.Movie,
-                                ) {
-                                    addPoster(posterUrl, authHeader)
-                                }
-                            } else {  // tv serie
-                                val serieName = nfoContent.select("title").text()
-
-                                val posterUrl = mediaRootUrl + "poster.jpg"
-
-                                newTvSeriesSearchResponse(
-                                    serieName,
-                                    nfoPath,
-                                    TvType.TvSeries,
-                                ) {
-                                    addPoster(posterUrl, authHeader)
-                                }
-
-
+                                )
                             }
+
                         } catch (e: Exception) {  // can cause issues invisible errors
                             null
                             //logError(e) // not working because it changes the return type of currentList to Any
@@ -249,8 +362,8 @@ class NginxProvider : MainAPI() {
 
                     } else null
                 }
-                if (currentList.isNotEmpty() && categoryTitle != "../") {  // exclude upper dir
-                    HomePageList(categoryTitle, currentList)
+                if (currentList.isNotEmpty() && categoryTitle != "../" && categoryTitle != "/") {  // exclude upper dir
+                    HomePageList(categoryTitle.replace("/", " "), currentList)
                 } else null
             } else null  // the path is ../ which is parent directory
         }
