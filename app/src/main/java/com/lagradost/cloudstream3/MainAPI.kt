@@ -109,7 +109,7 @@ object APIHolder {
             MonoschinosProvider(),
             KawaiifuProvider(), // disabled due to cloudflare
             //MultiAnimeProvider(),
-	        NginxProvider(),
+	    NginxProvider(),
         )
     }
 
