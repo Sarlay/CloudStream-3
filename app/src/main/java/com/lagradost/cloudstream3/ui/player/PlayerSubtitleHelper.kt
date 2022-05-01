@@ -23,6 +23,7 @@ enum class SubtitleOrigin {
     URL,
     DOWNLOADED_FILE,
     OPEN_SUBTITLES,
+    EMBEDDED_FILE,
 }
 
 data class SubtitleData(
@@ -74,6 +75,10 @@ class PlayerSubtitleHelper {
                     return url.toSubtitleMimeType()
                 }
                 SubtitleOrigin.OPEN_SUBTITLES -> {
+                    // TODO
+                    throw NotImplementedError()
+                }
+                SubtitleOrigin.EMBEDDED_FILE -> {
                     // TODO
                     throw NotImplementedError()
                 }

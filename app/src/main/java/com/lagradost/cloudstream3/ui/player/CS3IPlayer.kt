@@ -29,6 +29,7 @@ import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.ui.subtitles.SaveCaptionStyle
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.ExtractorUri
+import com.lagradost.cloudstream3.utils.SubtitleHelper
 import java.io.File
 import javax.net.ssl.HttpsURLConnection
 import javax.net.ssl.SSLContext
@@ -44,6 +45,7 @@ class CS3IPlayer : IPlayer {
     var cacheSize = 0L
     var simpleCacheSize = 0L
     var videoBufferMs = 0L
+    var reloaded = false
 
     private val seekActionTime = 30000L
 
@@ -147,7 +149,7 @@ class CS3IPlayer : IPlayer {
         link: ExtractorLink?,
         data: ExtractorUri?,
         startPosition: Long?,
-        subtitles: Set<SubtitleData>,
+        subtitles: Set<SubtitleData>, // list of all subtitles ?
         subtitle: SubtitleData?
     ) {
         Log.i(TAG, "loadPlayer")
@@ -236,6 +238,19 @@ class CS3IPlayer : IPlayer {
 
     override fun getCurrentPreferredSubtitle(): SubtitleData? {
         return subtitleHelper.getAllSubtitles().firstOrNull { sub ->
+
+            /*
+            private var allSubtitles: Set<SubtitleData> = emptySet()  // returned by getAllSubtitles
+
+
+            data class SubtitleData(
+                val name: String,
+                val url: String,
+                val origin: SubtitleOrigin,
+                val mimeType: String,
+            )
+             */
+
             exoPlayerSelectedTracks.any {
                 // The replace is needed as exoplayer translates _ to -
                 // Also we prefix the languages with _
@@ -442,6 +457,7 @@ class CS3IPlayer : IPlayer {
             cacheFactory: CacheDataSource.Factory? = null,
             trackSelector: TrackSelector? = null,
         ): ExoPlayer {
+
             val exoPlayerBuilder =
                 ExoPlayer.Builder(context)
                     .setRenderersFactory { eventHandler, videoRendererEventListener, audioRendererEventListener, textRendererOutput, metadataRendererOutput ->
@@ -613,15 +629,61 @@ class CS3IPlayer : IPlayer {
             exoPlayer?.addListener(object : Player.Listener {
                 /**
                  * Records the current used subtitle/track. Needed as exoplayer seems to have loose track language selection.
+                 * TRACK_TYPE_DEFAULT 	0
+                 * TRACK_TYPE_AUDIO 1
+                 * TRACK_TYPE_VIDEO 2
+                 * TRACK_TYPE_TEXT 	3
                  * */
                 override fun onTracksInfoChanged(tracksInfo: TracksInfo) {
                     exoPlayerSelectedTracks =
-                        tracksInfo.trackGroupInfos.mapNotNull { it.trackGroup.getFormat(0).language?.let { lang -> lang to it.isSelected } }
+
+                        tracksInfo.trackGroupInfos.mapNotNull {
+                            println("hre !!!!!!!!!")
+                            println(it.trackGroup.getFormat(0).language)  // en
+                            println(it.trackGroup.getFormat(0).id)  // id
+                            println(it.trackType)  // 3 means text, tracks can also be audio (1) and video (2)
+                            println(it.trackGroup.getFormat(0))
+                            it.trackGroup.getFormat(0).language?.let { lang -> lang to it.isSelected }
+                        }
+
+                    val allEmbeddedSubtitles: List<SubtitleData> = tracksInfo.trackGroupInfos.mapNotNull {
+                        if (it.trackType == 3) {
+                            it.trackGroup.getFormat(0).let { sub ->
+                                if (sub.id != null) { // only find embedded subtitles
+                                    SubtitleData(
+                                        sub.language.toString() + " embedded",
+                                        sub.id.toString(),
+                                        SubtitleOrigin.EMBEDDED_FILE,
+                                        MimeTypes.VIDEO_MP4,
+                                    )
+                                } else {null}
+                            }
+                        } else {null}
+
+                    }
+                    println(allEmbeddedSubtitles)
+                    val mySet = allEmbeddedSubtitles.toMutableSet()
+                    subtitleHelper.getAllSubtitles().forEach {
+                        mySet.add(it)
+                    }
+
+                    subtitleHelper.setAllSubtitles(mySet)
+                    subtitleHelper.setActiveSubtitles(mySet)
                     subtitlesUpdates?.invoke()
+
+                    requestSubtitleUpdate?.invoke()
+
+                    if (!reloaded){
+                        reloadPlayer(context)
+                        reloaded = true
+                    }
+
                     super.onTracksInfoChanged(tracksInfo)
                 }
 
                 override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                    println("getAllSubtitles")
+                    println(subtitleHelper.getAllSubtitles())
                     exoPlayer?.let { exo ->
                         updateIsPlaying?.invoke(
                             Pair(
@@ -721,13 +783,14 @@ class CS3IPlayer : IPlayer {
                 subtitleHelper,
             )
 
-            subtitleHelper.setActiveSubtitles(activeSubtitles.toSet())
+            subtitleHelper.setActiveSubtitles(activeSubtitles.toSet()) // Set list of all subtitles displayed
             loadExo(context, mediaItem, subSources)
         } catch (e: Exception) {
             Log.e(TAG, "loadOfflinePlayer error", e)
             playerError?.invoke(e)
         }
     }
+
 
     private fun getSubSources(
         onlineSourceFactory: DataSource.Factory?,
@@ -764,6 +827,10 @@ class CS3IPlayer : IPlayer {
                     // TODO
                     throw NotImplementedError()
                 }
+                SubtitleOrigin.EMBEDDED_FILE -> {
+                    println("RECEIVED YOU MAN")
+                    null
+                }
             }
         }
         return Pair(subSources, activeSubtitles)
@@ -788,7 +855,7 @@ class CS3IPlayer : IPlayer {
             val mime = if (link.isM3u8) {
                 MimeTypes.APPLICATION_M3U8
             } else {
-                MimeTypes.VIDEO_MP4
+                MimeTypes.VIDEO_MP4  // might be mkv, can cause issues =====
             }
             val mediaItem = getMediaItem(mime, link.url)
 
@@ -801,7 +868,15 @@ class CS3IPlayer : IPlayer {
                 subtitleHelper
             )
 
-            subtitleHelper.setActiveSubtitles(activeSubtitles.toSet())
+            // =============== hre ==============
+
+            println("subtitles list: 888832")
+            println(exoPlayerSelectedTracks)
+            exoPlayerSelectedTracks.forEach{
+                println(it)
+            }
+
+            subtitleHelper.setActiveSubtitles(activeSubtitles.toSet()) // set list of subtitles online
 
             if (simpleCache == null)
                 simpleCache = getCache(context, simpleCacheSize)
