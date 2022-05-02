@@ -42,6 +42,7 @@ object APIHolder {
     val allProviders by lazy {
         arrayListOf(
             // Movie providers
+            /*
             PelisplusProvider(),
             PelisplusHDProvider(),
             PeliSmartProvider(),
@@ -109,6 +110,8 @@ object APIHolder {
             MonoschinosProvider(),
             KawaiifuProvider(), // disabled due to cloudflare
             //MultiAnimeProvider(),
+            // remove all providers
+             */
 	        NginxProvider(),
         )
     }
