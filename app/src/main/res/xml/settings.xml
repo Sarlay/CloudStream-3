@@ -253,12 +253,6 @@
                 android:summary="@string/toggle_logcat_des"
                 android:icon="@drawable/baseline_description_24" />-->
 
-        <SwitchPreference
-                android:icon="@drawable/netflix_download"
-                android:key="@string/killswitch_key"
-                android:defaultValue="true"
-                android:summary="@string/killswitch_settings_des"
-                android:title="@string/killswitch_settings" />
 
         <Preference
                 android:key="@string/mal_key"

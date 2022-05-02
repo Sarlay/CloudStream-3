@@ -348,12 +348,6 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
         }
 
         val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
-        val downloadFromGithub = try {
-            settingsManager.getBoolean(getString(R.string.killswitch_key), true)
-        } catch (e: Exception) {
-            logError(e)
-            false
-        }
         val nginxUrl = try {
             settingsManager.getString(getString(R.string.nginx_url_key), "nginx_url_key").toString()
         } catch (e: Exception) {
@@ -386,38 +380,6 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
         }
     }
 
-    fun addNginxToJson(data: java.util.HashMap<String, ProvidersInfoJson>): java.util.HashMap<String, ProvidersInfoJson>? {
-        try {
-            val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
-            val nginxUrl =
-                settingsManager.getString(getString(R.string.nginx_url_key), "nginx_url_key").toString()
-            val nginxCredentials =
-                settingsManager.getString(getString(R.string.nginx_credentials), "nginx_credentials")
-                    .toString()
-            val StoredNginxProvider = NginxProvider()
-            if (nginxUrl == "nginx_url_key" || nginxUrl == "") { // if key is default value, or empty:
-                data[StoredNginxProvider.javaClass.simpleName] = ProvidersInfoJson(
-                    url = nginxUrl,
-                    name = StoredNginxProvider.name,
-                    status = PROVIDER_STATUS_DOWN,  // the provider will not be display
-                    credentials = nginxCredentials
-                )
-            } else {  // valid url
-                data[StoredNginxProvider.javaClass.simpleName] = ProvidersInfoJson(
-                    url = nginxUrl,
-                    name = StoredNginxProvider.name,
-                    status = PROVIDER_STATUS_OK,
-                    credentials = nginxCredentials
-                )
-            }
-
-            return data
-        } catch (e: Exception) {
-            logError(e)
-            return data
-        }
-    }
-
     // overwrites nginx with url stored in the settings
     if (nginxUrl != "nginx_url_key" && nginxUrl != "") {
         apis = allProviders
@@ -436,73 +398,7 @@ class MainActivity : AppCompatActivity(), ColorPickerDialogListener {
 
 
 
-        // this pulls the latest data so ppl don't have to update to simply change provider url
-        if (downloadFromGithub) {
-            try {
-                runBlocking {
-                    withContext(Dispatchers.IO) {
-                        try {
-                            val cacheStr: String? = getKey(PROVIDER_STATUS_KEY)
-                            val cache: HashMap<String, ProvidersInfoJson>? =
-                                cacheStr?.let { tryParseJson(cacheStr) }
-                            if (cache != null) {
-                                // if cache is found then spin up a new request, but dont wait
-                                main {
-                                    try {
-                                        val txt = app.get(PROVIDER_STATUS_URL).text
-                                        val newCache =
-                                            tryParseJson<HashMap<String, ProvidersInfoJson>>(txt)
-                                        setKey(PROVIDER_STATUS_KEY, txt)
-                                        MainAPI.overrideData = newCache // update all new providers
-
-                                        val newUpdatedCache = newCache?.let { addNginxToJson(it) ?: it }
-
-                                        for (api in apis) { // update current providers
-                                            newUpdatedCache?.get(api.javaClass.simpleName)?.let { data ->
-                                                api.overrideWithNewData(data)
-                                            }
-                                        }
-                                    } catch (e: Exception) {
-                                        logError(e)
-                                    }
-                                }
-                                cache
-                            } else {
-                                // if it is the first time the user has used the app then wait for a request to update all providers
-                                val txt = app.get(PROVIDER_STATUS_URL).text
-                                setKey(PROVIDER_STATUS_KEY, txt)
-                                val newCache = tryParseJson<HashMap<String, ProvidersInfoJson>>(txt)
-                                newCache
-                            }?.let { providersJsonMap ->
-                                MainAPI.overrideData = providersJsonMap
-                                val providersJsonMapUpdated = addNginxToJson(providersJsonMap)?: providersJsonMap // if return null, use unchanged one
-                                val acceptableProviders =
-                                    providersJsonMapUpdated.filter { it.value.status == PROVIDER_STATUS_OK || it.value.status == PROVIDER_STATUS_SLOW }
-                                        .map { it.key }.toSet()
-
-                                val restrictedApis =
-                                    if (hasBenene) providersJsonMapUpdated.filter { it.value.status == PROVIDER_STATUS_BETA_ONLY }
-                                        .map { it.key }.toSet() else emptySet()
-
-                                apis = allProviders.filter { api ->
-                                    val name = api.javaClass.simpleName
-                                    // if the provider does not exist in the json file, then it is shown by default
-                                    !providersJsonMapUpdated.containsKey(name) || acceptableProviders.contains(
-                                        name
-                                    ) || restrictedApis.contains(name)
-                                }
-                            }
-                        } catch (e: Exception) {
-                            logError(e)
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                apis = allProviders
-                e.printStackTrace()
-                logError(e)
-            }
-        }
+        // removed metadata getter
 
         loadThemes(this)
         updateLocale()

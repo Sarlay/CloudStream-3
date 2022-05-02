@@ -224,8 +224,6 @@
     <string name="episode_sync_settings_des">Automatically sync your current episode progress</string>
 
     <string name="restore_settings">Restore data from backup</string>
-    <string name="killswitch_settings">Download latest metadata from github</string>
-    <string name="killswitch_settings_des">If you want access to all providers (even broken ones) turn this off</string>
 
     <string name="backup_settings">Backup data</string>
     <string name="restore_success">Loaded backup file</string>
