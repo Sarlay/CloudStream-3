@@ -16,7 +16,7 @@ import org.json.JSONObject
 class RadarrProvider : MainAPI() {
     override var name = "Radarr"
     override val hasQuickSearch = false
-    override val hasMainPage = false
+    override val hasMainPage = true
     override val hasChromecastSupport = false
     override val hasDownloadSupport = false
 
@@ -91,6 +91,18 @@ class RadarrProvider : MainAPI() {
         //@JsonProperty("genres") var genres: List<String?>?,
     )
 
+
+    data class mainPage (
+        @JsonProperty("title") var title: String,
+        @JsonProperty("images") var images: List<image>,
+        @JsonProperty("tmdbId") var tmdbId: String,
+    )
+
+    data class image (
+        @JsonProperty("coverType") var coverType: String?,
+        @JsonProperty("remoteUrl") var remoteUrl: String?,
+    )
+
     override suspend fun load(url: String): LoadResponse {
         val (apiKey, path) = getApiKeyAndPath()
         val tmdbId = url.replace(mainUrl, "").replace("/", "")
@@ -131,6 +143,25 @@ class RadarrProvider : MainAPI() {
         }
     }
 
+    
+    override suspend fun getMainPage(): HomePageResponse {
+        val apiKey = getApiKeyAndPath().first
+        val collectionResponse = app.get("$mainUrl/api/v3/movie?apikey=$apiKey").text
+        val resultsResponse: List<mainPage> = mapper.readValue(collectionResponse)
+        val items = java.util.ArrayList<HomePageList>()
+        val listOfMovie = ArrayList<MovieSearchResponse>()
+        for (movie in resultsResponse) {
+            listOfMovie.add(newMovieSearchResponse(
+                    movie.title,
+                    movie.tmdbId,
+                    TvType.Movie,
+                ) {
+                    this.posterUrl = movie.images.first { it.coverType == "poster" }.remoteUrl
+                })
+        }
+        items.add(HomePageList("Movies", listOfMovie))
+        return HomePageResponse(items)
+    }
 
     override suspend fun loadLinks(
         data: String,

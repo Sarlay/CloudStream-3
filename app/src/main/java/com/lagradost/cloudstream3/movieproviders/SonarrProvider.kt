@@ -3,6 +3,8 @@ package com.lagradost.cloudstream3.movieproviders
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.lagradost.cloudstream3.*
+import com.lagradost.cloudstream3.animeproviders.AnimeflvnetProvider
+import com.lagradost.cloudstream3.animeproviders.MonoschinosProvider
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -12,7 +14,7 @@ import org.json.JSONObject
 class SonarrProvider : MainAPI() {
     override var name = "Sonarr"
     override val hasQuickSearch = false
-    override val hasMainPage = false
+    override val hasMainPage = true
     override val hasChromecastSupport = false
     override val hasDownloadSupport = false
     //override val providerType = ProviderType.ArrProvider
@@ -144,11 +146,19 @@ class SonarrProvider : MainAPI() {
         //@JsonProperty("genres") var genres: List<String?>?,
     )
 
-    data class addOptions (
-        var monitor: String,
-        var searchForCutoffUnmetEpisodes: Boolean,
-        var searchForMissingEpisodes: Boolean,
-        var ignoreEpisodesWithFiles: Boolean,
+
+    data class mainPage (
+        @JsonProperty("title") var title: String,
+        @JsonProperty("images") var images: List<image>,
+        @JsonProperty("network") var network: String,
+        @JsonProperty("tvdbId") var tvdbId: String,
+
+    )
+
+
+    data class image (
+        @JsonProperty("coverType") var coverType: String?,
+        @JsonProperty("remoteUrl") var remoteUrl: String?,
     )
 
 
@@ -204,5 +214,34 @@ class SonarrProvider : MainAPI() {
         }
     }
 
+
+    override suspend fun getMainPage(): HomePageResponse {
+        val apiKey = getApiKeyAndPath().first
+        val collectionResponse = app.get("$mainUrl/api/v3/series?apikey=$apiKey").text
+        val resultsResponse: List<mainPage> = mapper.readValue(collectionResponse)
+        val items = java.util.ArrayList<HomePageList>()
+        val listOfNetworks = ArrayList<String>() // can be Netflix or Disney or smth, will be the category displayed
+        for (serie in resultsResponse) {
+            if (serie.network !in listOfNetworks){
+                listOfNetworks.add(serie.network)
+            }
+        }
+        for (network in listOfNetworks) {
+            val listOfMatchingSerie = ArrayList<TvSeriesSearchResponse>()
+            for (serie in resultsResponse) {
+                if (serie.network == network) {
+                    listOfMatchingSerie.add(newTvSeriesSearchResponse(
+                        serie.title,
+                        serie.tvdbId,
+                        TvType.TvSeries,
+                    ) {
+                        this.posterUrl = serie.images.first { it.coverType == "poster" }.remoteUrl
+                    })
+                }
+            }
+            items.add(HomePageList(network,listOfMatchingSerie))
+        }
+        return HomePageResponse(items)
+    }
 
 }
