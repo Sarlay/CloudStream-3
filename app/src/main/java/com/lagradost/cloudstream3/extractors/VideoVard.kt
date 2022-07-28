@@ -17,7 +17,7 @@ class VideoVard : ExtractorApi() {
     override val requiresReferer = false
 
     //The following code was extracted from https://github.com/saikou-app/saikou/blob/main/app/src/main/java/ani/saikou/parsers/anime/extractors/VideoVard.kt
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink> {
         val id = url.substringAfter("e/").substringBefore("/")
         val sources = mutableListOf<ExtractorLink>()
         val hash = app.get("$mainUrl/api/make/download/$id").parsed<HashResponse>()

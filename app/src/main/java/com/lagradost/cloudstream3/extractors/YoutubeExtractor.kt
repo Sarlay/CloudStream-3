@@ -32,7 +32,7 @@ open class YoutubeExtractor : ExtractorApi() {
         return "$mainUrl/watch?v=$id"
     }
 
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
         val streams = safeApiCall {
             val streams = ytVideos[url] ?: let {
                 val link =

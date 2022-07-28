@@ -13,7 +13,7 @@ class AsianLoad : ExtractorApi() {
     override val requiresReferer = true
 
     private val sourceRegex = Regex("""sources:[\W\w]*?file:\s*?["'](.*?)["']""")
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink> {
         val extractedLinksList: MutableList<ExtractorLink> = mutableListOf()
         with(app.get(url, referer = referer)) {
             sourceRegex.findAll(this.text).forEach { sourceMatch ->

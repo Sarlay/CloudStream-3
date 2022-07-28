@@ -8,7 +8,7 @@ open class Maxstream : ExtractorApi() {
     override var name = "Maxstream"
     override var mainUrl = "https://maxstream.video/"
     override val requiresReferer = false
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
         val extractedLinksList: MutableList<ExtractorLink> = mutableListOf()
         val response = app.get(url).text
         val jstounpack = Regex("cript\">eval((.|\\n)*?)</script>").find(response)?.groups?.get(1)?.value

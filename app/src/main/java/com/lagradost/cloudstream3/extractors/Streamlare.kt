@@ -37,7 +37,7 @@ open class Slmaxed : ExtractorApi() {
         @JsonProperty val type: String? = null
     )
 
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
         val id = embedRegex.find(url)!!.groupValues[1]
         val json = app.post(
             "${mainUrl}api/video/stream/get",

@@ -11,7 +11,7 @@ class BullStream : ExtractorApi() {
     override val requiresReferer = false
     val regex = Regex("(?<=sniff\\()(.*)(?=\\)\\);)")
 
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
         val data = regex.find(app.get(url).text)?.value
             ?.replace("\"", "")
             ?.split(",")

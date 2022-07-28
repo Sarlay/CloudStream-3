@@ -161,7 +161,8 @@ suspend fun unshortenLinkSafe(url : String) : String {
 suspend fun loadExtractor(
     url: String,
     referer: String? = null,
-    callback: (ExtractorLink) -> Unit
+    callback: (ExtractorLink) -> Unit,
+    additionalInfo: List<String?>? = null,
 ): Boolean {
     val currentUrl = unshortenLinkSafe(url)
 
@@ -169,7 +170,7 @@ suspend fun loadExtractor(
         if (currentUrl.replace(schemaStripRegex, "")
                 .startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))
         ) {
-            extractor.getSafeUrl(currentUrl, referer)?.forEach(callback)
+            extractor.getSafeUrl(currentUrl, referer, additionalInfo)?.forEach(callback)
             return true
         }
     }
@@ -180,12 +181,13 @@ suspend fun loadExtractor(
 suspend fun loadExtractor(
     url: String,
     referer: String? = null,
+    additionalInfo: List<String?>? = null
 ): List<ExtractorLink> {
     val currentUrl = unshortenLinkSafe(url)
 
     for (extractor in extractorApis) {
         if (currentUrl.startsWith(extractor.mainUrl)) {
-            return extractor.getSafeUrl(currentUrl, referer) ?: emptyList()
+            return extractor.getSafeUrl(currentUrl, referer, additionalInfo) ?: emptyList()
         }
     }
     return emptyList()
@@ -312,7 +314,8 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
 
     YoutubeExtractor(),
     YoutubeShortLinkExtractor(),
-    Streamlare()
+    Streamlare(),
+    Vudeo(),
 )
 
 fun getExtractorApiFromName(name: String): ExtractorApi {
@@ -371,14 +374,14 @@ abstract class ExtractorApi {
     abstract val mainUrl: String
     abstract val requiresReferer: Boolean
 
-    suspend fun getSafeUrl(url: String, referer: String? = null): List<ExtractorLink>? {
-        return suspendSafeApiCall { getUrl(url, referer) }
+    suspend fun getSafeUrl(url: String, referer: String? = null, additionalInfo: List<String?>? = null): List<ExtractorLink>? {
+        return suspendSafeApiCall { getUrl(url, referer, additionalInfo) }
     }
 
     /**
      * Will throw errors, use getSafeUrl if you don't want to handle the exception yourself
      */
-    abstract suspend fun getUrl(url: String, referer: String? = null): List<ExtractorLink>?
+    abstract suspend fun getUrl(url: String, referer: String? = null, additionalInfo: List<String?>? = null): List<ExtractorLink>?
 
     open fun getExtractorUrl(id: String): String {
         return id

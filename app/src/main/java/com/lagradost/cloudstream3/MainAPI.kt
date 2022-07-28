@@ -61,9 +61,8 @@ object APIHolder {
             VMoveeProvider(),
             AllMoviesForYouProvider(),
             VidEmbedProvider(),
-            VfFilmProvider(),
-            VfSerieProvider(),
             FrenchStreamProvider(),
+            MesFilmsProvider(),
             AsianLoadProvider(),
             AsiaFlixProvider(), // This should be removed in favor of asianembed.io, same source
             EjaTv(),
@@ -688,6 +687,8 @@ fun getQualityFromString(string: String?): SearchQuality? {
         "blu" -> SearchQuality.BlueRay
         "fhd" -> SearchQuality.HD
         "br" -> SearchQuality.BlueRay
+        "bdrip" -> SearchQuality.BlueRay
+        "bdripts" -> SearchQuality.BlueRay
         "standard" -> SearchQuality.SD
         "sd" -> SearchQuality.SD
         "4k" -> SearchQuality.FourK

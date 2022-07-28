@@ -44,7 +44,7 @@ open class DoodLaExtractor : ExtractorApi() {
         return "$mainUrl/d/$id"
     }
 
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
         val response0 = app.get(url).text // html of DoodStream page to look for /pass_md5/...
         val md5 =mainUrl+(Regex("/pass_md5/[^']*").find(response0)?.value ?: return null)  // get https://dood.ws/pass_md5/...
         val trueUrl = app.get(md5, referer = url).text + "zUEJeL3mUN?token=" + md5.substringAfterLast("/")   //direct link to extract  (zUEJeL3mUN is random)

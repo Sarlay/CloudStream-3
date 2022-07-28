@@ -22,7 +22,7 @@ open class Tomatomatela : ExtractorApi() {
         @JsonProperty("file") val file: String
     )
     open val details = "details.php?v="
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
         val link = url.replace("$mainUrl/embed.html#","$mainUrl/$details")
         val server = app.get(link, allowRedirects = false).text
         val json = parseJson<Tomato>(server)

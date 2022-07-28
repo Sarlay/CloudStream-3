@@ -27,7 +27,7 @@ open class ZplayerV2 : ExtractorApi() {
     override var mainUrl = "https://v2.zplayer.live"
     override val requiresReferer = false
 
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink> {
         val doc = app.get(url).document
         val sources = mutableListOf<ExtractorLink>()
         doc.select("script").map { script ->

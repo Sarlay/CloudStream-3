@@ -144,7 +144,7 @@ class MonoschinosProvider : MainAPI() {
             val url = (urlDecoded).replace("https://monoschinos2.com/reproductor?url=", "")
             if (url.startsWith("https://www.fembed.com")) {
                 val extractor = FEmbed()
-                extractor.getUrl(url).forEach { link ->
+                extractor.getUrl(url)?.forEach { link ->
                     callback.invoke(link)
                 }
             } else {

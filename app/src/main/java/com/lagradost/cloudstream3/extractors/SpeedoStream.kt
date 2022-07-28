@@ -12,7 +12,7 @@ class SpeedoStream : ExtractorApi() {
     override val mainUrl = "https://speedostream.com"
     override val requiresReferer = true
 
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink> {
         val sources = mutableListOf<ExtractorLink>()
         app.get(url, referer = referer).document.select("script").map { script ->
             if (script.data().contains("jwplayer(\"vplayer\").setup(")) {

@@ -15,7 +15,7 @@ data class Files(
     override var name = "Supervideo"
     override var mainUrl = "https://supervideo.tv"
     override val requiresReferer = false
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
         val extractedLinksList: MutableList<ExtractorLink> = mutableListOf()
         val response = app.get(url).text
         val jstounpack = Regex("eval((.|\\n)*?)</script>").find(response)?.groups?.get(1)?.value

@@ -7,6 +7,7 @@ class LinkGenerator(
     private val links: List<String>,
     private val extract: Boolean = true,
     private val referer: String? = null,
+    private val additionalInfo: List<String?>? = null,
 ) : IGenerator {
     override val hasCache = false
 
@@ -44,9 +45,8 @@ class LinkGenerator(
         offset: Int
     ): Boolean {
         links.apmap { link ->
-            if (!extract || !loadExtractor(link, referer) {
-                    callback(it to null)
-                }) {
+            if (!extract || !loadExtractor(link, referer, { callback(it to null) } , additionalInfo)
+            ){
 
                 // if don't extract or if no extractor found simply return the link
                 callback(

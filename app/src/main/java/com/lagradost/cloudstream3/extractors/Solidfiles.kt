@@ -13,7 +13,7 @@ class Solidfiles : ExtractorApi() {
     override val mainUrl = "https://www.solidfiles.com"
     override val requiresReferer = false
 
-    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink> {
         val sources = mutableListOf<ExtractorLink>()
         with(app.get(url).document) {
             this.select("script").map { script ->
