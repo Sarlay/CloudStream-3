@@ -1,12 +1,12 @@
 package com.lagradost.cloudstream3.utils
 
 import android.net.Uri
+import com.lagradost.cloudstream3.SubtitleFile
 import com.lagradost.cloudstream3.TvType
 import com.lagradost.cloudstream3.USER_AGENT
 import com.lagradost.cloudstream3.app
 import com.lagradost.cloudstream3.extractors.*
 import com.lagradost.cloudstream3.mvvm.logError
-import com.lagradost.cloudstream3.mvvm.suspendSafeApiCall
 import kotlinx.coroutines.delay
 import org.jsoup.Jsoup
 
@@ -144,7 +144,7 @@ fun getAndUnpack(string: String): String {
     return JsUnpacker(packedText).unpack() ?: string
 }
 
-suspend fun unshortenLinkSafe(url : String) : String {
+suspend fun unshortenLinkSafe(url: String): String {
     return try {
         if (ShortLink.isShortLink(url))
             ShortLink.unshorten(url)
@@ -155,42 +155,41 @@ suspend fun unshortenLinkSafe(url : String) : String {
     }
 }
 
+suspend fun loadExtractor(
+    url: String,
+    subtitleCallback: (SubtitleFile) -> Unit,
+    callback: (ExtractorLink) -> Unit
+): Boolean {
+    return loadExtractor(
+        url = url,
+        referer = null,
+        subtitleCallback = subtitleCallback,
+        callback = callback,
+        additionalInfo = null
+    )
+}
+
 /**
  * Tries to load the appropriate extractor based on link, returns true if any extractor is loaded.
  * */
 suspend fun loadExtractor(
     url: String,
     referer: String? = null,
+    subtitleCallback: (SubtitleFile) -> Unit,
     callback: (ExtractorLink) -> Unit,
     additionalInfo: List<String?>? = null,
 ): Boolean {
     val currentUrl = unshortenLinkSafe(url)
-
+    val compareUrl = currentUrl.lowercase().replace(schemaStripRegex, "")
     for (extractor in extractorApis) {
-        if (currentUrl.replace(schemaStripRegex, "")
-                .startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))
-        ) {
-            extractor.getSafeUrl(currentUrl, referer, additionalInfo)?.forEach(callback)
+
+        if (compareUrl.startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))) {
+            extractor.getSafeUrl(currentUrl, referer, subtitleCallback, callback, additionalInfo)
             return true
         }
     }
 
     return false
-}
-
-suspend fun loadExtractor(
-    url: String,
-    referer: String? = null,
-    additionalInfo: List<String?>? = null
-): List<ExtractorLink> {
-    val currentUrl = unshortenLinkSafe(url)
-
-    for (extractor in extractorApis) {
-        if (currentUrl.startsWith(extractor.mainUrl)) {
-            return extractor.getSafeUrl(currentUrl, referer, additionalInfo) ?: emptyList()
-        }
-    }
-    return emptyList()
 }
 
 val extractorApis: Array<ExtractorApi> = arrayOf(
@@ -206,6 +205,7 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     MwvnVizcloudInfo(),
     VizcloudDigital(),
     VizcloudCloud(),
+    VizcloudSite(),
     VideoVard(),
     VideovardSX(),
     Mp4Upload(),
@@ -316,6 +316,13 @@ val extractorApis: Array<ExtractorApi> = arrayOf(
     YoutubeShortLinkExtractor(),
     Streamlare(),
     Vudeo(),
+    VidSrcExtractor(),
+    VidSrcExtractor2(),
+
+    // OpsktpVido(), // todo unshrink link for frenchstream
+    // OpsktpVidonet(),
+
+
 )
 
 fun getExtractorApiFromName(name: String): ExtractorApi {
@@ -374,14 +381,44 @@ abstract class ExtractorApi {
     abstract val mainUrl: String
     abstract val requiresReferer: Boolean
 
-    suspend fun getSafeUrl(url: String, referer: String? = null, additionalInfo: List<String?>? = null): List<ExtractorLink>? {
-        return suspendSafeApiCall { getUrl(url, referer, additionalInfo) }
+
+    //suspend fun getSafeUrl(url: String, referer: String? = null, additionalInfo: List<String?>? = null)): List<ExtractorLink>? {
+    //    return suspendSafeApiCall { getUrl(url, referer, additionalInfo) }
+    //}
+
+    // this is the new extractorapi, override to add subtitles and stuff
+    open suspend fun getUrl(
+        url: String,
+        referer: String? = null,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit,
+        additionalInfo: List<String?>? = null
+    ) {
+        getUrl(url, referer, additionalInfo)?.forEach(callback)
+    }
+
+    suspend fun getSafeUrl(
+        url: String,
+        referer: String? = null,
+        subtitleCallback: (SubtitleFile) -> Unit,
+        callback: (ExtractorLink) -> Unit,
+        additionalInfo: List<String?>? = null,
+    ) {
+        try {
+            getUrl(url, referer, subtitleCallback, callback, additionalInfo)
+        } catch (e: Exception) {
+            logError(e)
+        }
     }
 
     /**
      * Will throw errors, use getSafeUrl if you don't want to handle the exception yourself
      */
-    abstract suspend fun getUrl(url: String, referer: String? = null, additionalInfo: List<String?>? = null): List<ExtractorLink>?
+
+    open suspend fun getUrl(url: String, referer: String? = null, additionalInfo: List<String?>? = null): List<ExtractorLink>? {
+        return emptyList()
+    }
+
 
     open fun getExtractorUrl(id: String): String {
         return id

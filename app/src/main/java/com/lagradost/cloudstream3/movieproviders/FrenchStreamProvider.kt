@@ -5,6 +5,7 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addRating
 import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 import com.lagradost.cloudstream3.utils.ExtractorLink
 import com.lagradost.cloudstream3.utils.extractorApis
+import com.lagradost.cloudstream3.utils.loadExtractor
 
 
 class FrenchStreamProvider : MainAPI() {
@@ -176,7 +177,7 @@ class FrenchStreamProvider : MainAPI() {
 //                            val litext = li.text()
                             if (serverUrl.isNotBlank()) {
                                 if (li.text().replace("&nbsp;", "").replace(" ", "").isNotBlank()) {
-                                    Pair(li.text().replace(" ", ""), "vf" + fixUrl(serverUrl))
+                                    Pair("vf", fixUrl(serverUrl))
                                 } else {
                                     null
                                 }
@@ -192,7 +193,7 @@ class FrenchStreamProvider : MainAPI() {
                             val serverUrl = fixUrlNull(li.selectFirst("a")?.attr("href"))
                             if (!serverUrl.isNullOrEmpty()) {
                                 if (li.text().replace("&nbsp;", "").isNotBlank()) {
-                                    Pair(li.text().replace(" ", ""), "vo" + fixUrl(serverUrl))
+                                    Pair("vo", fixUrl(serverUrl))
                                 } else {
                                     null
                                 }
@@ -206,10 +207,10 @@ class FrenchStreamProvider : MainAPI() {
                     app.get(fixUrl(data)).document.select("nav#primary_nav_wrap > ul > li > ul > li > a")
                         .mapNotNull { a ->
                             val serverurl = fixUrlNull(a.attr("href")) ?: return@mapNotNull null
-                            val parent = a.parents()[2]
-                            val element = parent.selectFirst("a")!!.text().plus(" ")
+                            //val parent = a.parents()[2]
+                            //val element = parent.selectFirst("a")!!.text().plus(" ")
                             if (a.text().replace("&nbsp;", "").isNotBlank()) {
-                                Pair(element.plus(a.text()), fixUrl(serverurl))
+                                Pair(null, fixUrl(serverurl))
                             } else {
                                 null
                             }
@@ -218,14 +219,8 @@ class FrenchStreamProvider : MainAPI() {
             }
 
         servers.apmap {
-            for (extractor in extractorApis) {
-                if (it.first.contains(extractor.name, ignoreCase = true)) {
-                    //                    val name = it.first
-                    //                    print("true for $name")
-                    extractor.getSafeUrl(it.second, it.second, subtitleCallback, callback)
-                    break
-                }
-            }
+            println(it.second)
+            loadExtractor(it.second, it.second, subtitleCallback, callback, additionalInfo = listOf(null, it.first))
         }
 
         return true

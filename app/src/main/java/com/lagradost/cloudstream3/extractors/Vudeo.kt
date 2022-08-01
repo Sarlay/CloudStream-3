@@ -16,7 +16,7 @@ open class Vudeo : ExtractorApi() {
     override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
 
         val quality = getQualityFromName(additionalInfo?.get(0))
-        val lang = additionalInfo?.get(1) ?: "unknown language"
+        val lang = additionalInfo?.get(1) ?: ""
         with(app.get(url).text) {  // raised error ERROR_CODE_PARSING_CONTAINER_UNSUPPORTED (3003) is due to the response: "error_nofile"
             val document = Jsoup.parse(this)
             srcRegex.find(document.html())?.groupValues?.get(1)?.let { link ->

@@ -7,6 +7,10 @@ class Evoload1 : Evoload() {
     override var mainUrl = "https://evoload.io"
 }
 
+class opsktp : Evoload() {
+    override var mainUrl = "https://opsktp.com"
+}
+
 open class Evoload : ExtractorApi() {
     override val name: String = "Evoload"
     override val mainUrl: String = "https://www.evoload.io"
@@ -17,7 +21,7 @@ open class Evoload : ExtractorApi() {
 
     override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink> {
         val quality = getQualityFromName(additionalInfo?.get(0))
-        val lang = additionalInfo?.get(1) ?: "unknown language"
+        val lang = additionalInfo?.get(1) ?: ""
 	//println(lang)
         //println(cleaned_url)
 

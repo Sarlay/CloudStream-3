@@ -47,6 +47,18 @@
         "status": 0,
         "url": "https://animepahe.com"
     },
+    "AnimeSailProvider": {
+        "language": "id",
+        "name": "AnimeSail",
+        "status": 1,
+        "url": "https://111.90.143.42"
+    },
+    "AnimeSaturnProvider": {
+        "language": "it",
+        "name": "AnimeSaturn",
+        "status": 1,
+        "url": "https://www.animesaturn.cc"
+    },
     "AnimeWorldProvider": {
         "language": "it",
         "name": "AnimeWorld",
@@ -245,7 +257,7 @@
     "HDrezkaProvider": {
         "language": "ru",
         "name": "HDrezka",
-        "status": 1
+        "status": 1,
         "url": "https://hdrezka19139.org"
     },
     "IHaveNoTvProvider": {
@@ -465,7 +477,7 @@
     "SoaptwoDayProvider": {
         "language": "en",
         "name": "Soap2Day",
-        "status": 1,
+        "status": 0,
         "url": "https://secretlink.xyz"
     },
     "SolarmovieProvider": {
@@ -495,8 +507,14 @@
     "TheFlixToProvider": {
         "language": "en",
         "name": "TheFlix.to",
-        "status": 1,
+        "status": 0,
         "url": "https://theflix.to"
+    },
+    "TocanimeProvider": {
+        "language": "vi",
+        "name": "Tocanime",
+        "status": 1,
+        "url": "https://tocanime.co"
     },
     "TrailersTwoProvider": {
         "language": "en",
@@ -508,7 +526,7 @@
         "language": "en",
         "name": "2Embed",
         "status": 1,
-        "url": "https://2embed.org"
+        "url": "https://www.2embed.to"
     },
     "UakinoProvider": {
         "language": "uk",
@@ -569,6 +587,12 @@
         "name": "Xcine",
         "status": 1,
         "url": "https://xcine.me"
+    },
+    "YomoviesProvider": {
+        "language": "hi",
+        "name": "Yomovies",
+        "status": 1,
+        "url": "https://yomovies.plus"
     },
     "ZoroProvider": {
         "language": "en",

@@ -45,8 +45,15 @@ class LinkGenerator(
         offset: Int
     ): Boolean {
         links.apmap { link ->
-            if (!extract || !loadExtractor(link, referer, { callback(it to null) } , additionalInfo)
+
+            if (!extract || !loadExtractor(
+                    link,
+                    referer,
+                    { subtitleCallback(PlayerSubtitleHelper.getSubtitleData(it)) },
+                    { callback(it to null) } ,
+                    additionalInfo)
             ){
+
 
                 // if don't extract or if no extractor found simply return the link
                 callback(

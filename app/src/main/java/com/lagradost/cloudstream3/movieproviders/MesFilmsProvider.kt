@@ -168,7 +168,7 @@ class MesFilmsProvider : MainAPI() {
                 println("quality: $quality")
 
                 if (playerUrl != null)
-                loadExtractor(httpsify(playerUrl), playerUrl, callback, additionalInfo)
+                loadExtractor(httpsify(playerUrl), playerUrl, subtitleCallback, callback, additionalInfo)
             }
 
 
