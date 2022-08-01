@@ -176,7 +176,10 @@ class MesFilmsProvider : MainAPI() {
     }
 
 
-    override suspend fun getMainPage(): HomePageResponse? {
+    override suspend fun getMainPage(
+        page: Int,
+        request : MainPageRequest
+    ): HomePageResponse {
         val html = app.get("$mainUrl/tendance/?get=movies").text
         val document = Jsoup.parse(html)
         val movies = document.select("div.items > article.movies")
@@ -201,7 +204,7 @@ class MesFilmsProvider : MainAPI() {
                 this.quality = quality
             }
             }
-        if (returnList.isEmpty()) return null
+        if (returnList.isEmpty()) throw ErrorLoadingException()
         return HomePageResponse(listOf(HomePageList(categoryTitle, returnList)))
     }
 }
