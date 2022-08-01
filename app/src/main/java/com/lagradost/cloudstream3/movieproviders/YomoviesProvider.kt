@@ -9,7 +9,7 @@ import com.lagradost.cloudstream3.utils.loadExtractor
 import org.jsoup.nodes.Element
 
 class YomoviesProvider : MainAPI() {
-    override var mainUrl = "https://yomovies.plus"
+    override var mainUrl = "https://yomovies.vip"
     override var name = "Yomovies"
     override val hasMainPage = true
     override var lang = "hi"
@@ -19,7 +19,7 @@ class YomoviesProvider : MainAPI() {
         TvType.TvSeries,
     )
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
         val document = app.get(mainUrl).document
 
         val homePageList = ArrayList<HomePageList>()

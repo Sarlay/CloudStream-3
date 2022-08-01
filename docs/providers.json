@@ -23,6 +23,12 @@
         "status": 1,
         "url": "https://altadefinizione.tienda"
     },
+    "AniPlayProvider": {
+        "language": "it",
+        "name": "AniPlay",
+        "status": 1,
+        "url": "https://aniplay.it"
+    },
     "AniflixProvider": {
         "language": "en",
         "name": "Aniflix",
@@ -216,7 +222,7 @@
         "language": "it",
         "name": "Filmpertutti",
         "status": 1,
-        "url": "https://filmpertutti.love"
+        "url": "https://filmpertutti.photo"
     },
     "FmoviesToProvider": {
         "language": "en",
@@ -234,7 +240,7 @@
         "language": "en",
         "name": "GogoAnime",
         "status": 1,
-        "url": "https://gogoanime.sk"
+        "url": "https://gogoanime.lu"
     },
     "GomunimeProvider": {
         "language": "id",
@@ -271,6 +277,12 @@
         "name": "Idlix",
         "status": 1,
         "url": "https://94.103.82.88"
+    },
+    "IlGenioDelloStreamingProvider": {
+        "language": "it",
+        "name": "IlGenioDelloStreaming",
+        "status": 1,
+        "url": "https://ilgeniodellostreaming.quest"
     },
     "JKAnimeProvider": {
         "language": "es",
@@ -496,7 +508,7 @@
         "language": "it",
         "name": "Tantifilm",
         "status": 1,
-        "url": "https://www.tantifilm.nl"
+        "url": "https://tantifilm.autos"
     },
     "TenshiProvider": {
         "language": "en",
@@ -592,7 +604,7 @@
         "language": "hi",
         "name": "Yomovies",
         "status": 1,
-        "url": "https://yomovies.plus"
+        "url": "https://yomovies.vip"
     },
     "ZoroProvider": {
         "language": "en",

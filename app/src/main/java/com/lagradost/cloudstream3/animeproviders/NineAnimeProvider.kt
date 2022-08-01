@@ -137,44 +137,44 @@ class NineAnimeProvider : MainAPI() {
         private fun decode(input: String): String = java.net.URLDecoder.decode(input, "utf-8")
     }
 
-    override suspend fun getMainPage(): HomePageResponse {
-        val items = listOf(
-            "$mainUrl/ajax/home/widget/trending?page=1" to "Trending",
-            "$mainUrl/ajax/home/widget/updated-all?page=1" to "All",
-            "$mainUrl/ajax/home/widget/updated-sub?page=1" to "Recently Updated (SUB)",
-            "$mainUrl/ajax/home/widget/updated-dub?page=1" to
-                    "Recently Updated (DUB)",
-            "$mainUrl/ajax/home/widget/updated-china?page=1" to
-                    "Recently Updated (Chinese)",
-            "$mainUrl/ajax/home/widget/random?page=1" to "Random",
-        ).apmap { (url, name) ->
-            val home = Jsoup.parse(
-                app.get(
-                    url
-                ).parsed<Response>().html
-            ).select("div.item").mapNotNull { element ->
-                val title = element.selectFirst(".info > .name") ?: return@mapNotNull null
-                val link = title.attr("href")
-                val poster = element.selectFirst(".poster > a > img")?.attr("src")
-                val meta = element.selectFirst(".poster > a > .meta > .inner > .left")
-                val subbedEpisodes = meta?.selectFirst(".sub")?.text()?.toIntOrNull()
-                val dubbedEpisodes = meta?.selectFirst(".dub")?.text()?.toIntOrNull()
+    override val mainPage = mainPageOf(
+        "$mainUrl/ajax/home/widget/trending?page=" to "Trending",
+        "$mainUrl/ajax/home/widget/updated-all?page=" to "All",
+        "$mainUrl/ajax/home/widget/updated-sub?page=" to "Recently Updated (SUB)",
+        "$mainUrl/ajax/home/widget/updated-dub?page=" to "Recently Updated (DUB)",
+        "$mainUrl/ajax/home/widget/updated-china?page=" to "Recently Updated (Chinese)",
+        "$mainUrl/ajax/home/widget/random?page=" to "Random",
+    )
 
-                newAnimeSearchResponse(title.text() ?: return@mapNotNull null, link) {
-                    this.posterUrl = poster
-                    addDubStatus(
-                        dubbedEpisodes != null,
-                        subbedEpisodes != null,
-                        dubbedEpisodes,
-                        subbedEpisodes
-                    )
-                }
+    override suspend fun getMainPage(
+        page: Int,
+        request: MainPageRequest
+    ): HomePageResponse {
+        val url = request.data + page
+        val home = Jsoup.parse(
+            app.get(
+                url
+            ).parsed<Response>().html
+        ).select("div.item").mapNotNull { element ->
+            val title = element.selectFirst(".info > .name") ?: return@mapNotNull null
+            val link = title.attr("href")
+            val poster = element.selectFirst(".poster > a > img")?.attr("src")
+            val meta = element.selectFirst(".poster > a > .meta > .inner > .left")
+            val subbedEpisodes = meta?.selectFirst(".sub")?.text()?.toIntOrNull()
+            val dubbedEpisodes = meta?.selectFirst(".dub")?.text()?.toIntOrNull()
+
+            newAnimeSearchResponse(title.text() ?: return@mapNotNull null, link) {
+                this.posterUrl = poster
+                addDubStatus(
+                    dubbedEpisodes != null,
+                    subbedEpisodes != null,
+                    dubbedEpisodes,
+                    subbedEpisodes
+                )
             }
-
-            HomePageList(name, home)
         }
 
-        return HomePageResponse(items)
+        return newHomePageResponse(request.name, home)
     }
 
     data class Response(
@@ -237,9 +237,10 @@ class NineAnimeProvider : MainAPI() {
         val title = (info.selectFirst(".title") ?: info.selectFirst(".d-title"))?.text()
             ?: throw ErrorLoadingException("Could not find title")
 
-        val body =
-            app.get("$mainUrl/ajax/episode/list/$id?vrf=${encodeVrf(id, cipherKey)}")
-                .parsed<Response>().html
+        val vrf = encodeVrf(id, cipherKey)
+        val req = app.get("$mainUrl/ajax/episode/list/$id?vrf=$vrf")
+        val body = req.parsedSafe<Response>()?.html
+            ?: throw ErrorLoadingException("Could not parse json with cipherKey=$cipherKey code=${req.code}")
 
         val subEpisodes = ArrayList<Episode>()
         val dubEpisodes = ArrayList<Episode>()

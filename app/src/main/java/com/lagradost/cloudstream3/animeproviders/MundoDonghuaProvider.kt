@@ -23,7 +23,7 @@ class MundoDonghuaProvider : MainAPI() {
         TvType.Anime,
     )
 
-    override suspend fun getMainPage(): HomePageResponse {
+    override suspend fun getMainPage(page: Int, request : MainPageRequest): HomePageResponse {
         val urls = listOf(
             Pair("$mainUrl/lista-donghuas", "Donghuas"),
         )
