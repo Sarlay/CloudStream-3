@@ -33,7 +33,7 @@ open class OkRu : ExtractorApi() {
     override var mainUrl = "http://ok.ru"
     override val requiresReferer = false
 
-    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         val doc = app.get(url).document
         val sources = ArrayList<ExtractorLink>()
         val datajson = doc.select("div[data-options]").attr("data-options")

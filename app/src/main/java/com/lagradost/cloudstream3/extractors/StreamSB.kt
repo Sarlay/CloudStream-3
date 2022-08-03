@@ -92,7 +92,7 @@ open class StreamSB : ExtractorApi() {
         @JsonProperty("status_code") val statusCode: Int,
     )
 
-    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         val regexID = Regex("(embed-[a-zA-Z0-9]{0,8}[a-zA-Z0-9_-]+|\\/e\\/[a-zA-Z0-9]{0,8}[a-zA-Z0-9_-]+)")
         val id = regexID.findAll(url).map {
             it.value.replace(Regex("(embed-|\\/e\\/)"),"")

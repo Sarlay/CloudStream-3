@@ -38,7 +38,7 @@ open class JWPlayer : ExtractorApi() {
     override val mainUrl = "https://www.jwplayer.com"
     override val requiresReferer = false
 
-    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         val sources = mutableListOf<ExtractorLink>()
         with(app.get(url).document) {
             val data = this.select("script").mapNotNull { script ->

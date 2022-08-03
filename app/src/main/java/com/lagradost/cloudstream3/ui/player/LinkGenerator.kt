@@ -7,7 +7,6 @@ class LinkGenerator(
     private val links: List<String>,
     private val extract: Boolean = true,
     private val referer: String? = null,
-    private val additionalInfo: List<String?>? = null,
 ) : IGenerator {
     override val hasCache = false
 
@@ -51,7 +50,7 @@ class LinkGenerator(
                     referer,
                     { subtitleCallback(PlayerSubtitleHelper.getSubtitleData(it)) },
                     { callback(it to null) } ,
-                    additionalInfo)
+                )
             ){
 
 

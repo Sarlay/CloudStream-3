@@ -38,7 +38,7 @@ open class YoutubeExtractor : ExtractorApi() {
         referer: String?,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit,
-        additionalInfo: List<String?>?,
+        
     ) {
         if (ytVideos[url].isNullOrEmpty()) {
             val link =

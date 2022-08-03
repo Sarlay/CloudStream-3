@@ -11,7 +11,7 @@ class Linkbox : ExtractorApi() {
     override val mainUrl = "https://www.linkbox.to"
     override val requiresReferer = true
 
-    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink> {
+override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
         val id = url.substringAfter("id=")
         val sources = mutableListOf<ExtractorLink>()
 

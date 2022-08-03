@@ -11,7 +11,7 @@ open class PlayerVoxzer : ExtractorApi() {
     override var mainUrl = "https://player.voxzer.org"
     override val requiresReferer = false
 
-    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         val listurl = url.replace("/view/","/list/")
         val urltext = app.get(listurl, referer = url).text
         val m3u8regex = Regex("((https:|http:)\\/\\/.*\\.m3u8)")

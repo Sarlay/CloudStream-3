@@ -15,10 +15,9 @@ class VidSrcExtractor2 : VidSrcExtractor() {
         referer: String?,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit,
-        additionalInfo: List<String?>?,
     ) {
         val newUrl = url.lowercase().replace(mainUrl, super.mainUrl)
-        super.getUrl(newUrl, referer, subtitleCallback, callback, additionalInfo)
+        super.getUrl(newUrl, referer, subtitleCallback, callback)
     }
 }
 
@@ -33,7 +32,6 @@ open class VidSrcExtractor : ExtractorApi() {
         referer: String?,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit,
-        additionalInfo: List<String?>?,
     ) {
         val iframedoc = app.get(url).document
 

@@ -10,6 +10,7 @@ import com.lagradost.cloudstream3.mvvm.logError
 import com.lagradost.cloudstream3.utils.*
 import com.lagradost.cloudstream3.utils.AppUtils.parseJson
 import org.jsoup.Jsoup
+import java.util.stream.Collectors.toList
 
 
 class MesFilmsProvider : MainAPI() {
@@ -153,7 +154,7 @@ class MesFilmsProvider : MainAPI() {
                 val server = li.selectFirst("> span.server")?.text()
                 val languageInfo =
                     li.selectFirst("span.flag > img")?.attr("data-src")?.substringAfterLast("/")
-                        ?.replace(".png", "")
+                        ?.replace(".png", "") ?: ""
                 val postId = li.attr("data-post")
 
                 val indexOfPlayer = li.attr("data-nume")
@@ -162,13 +163,20 @@ class MesFilmsProvider : MainAPI() {
                 val getPlayerEmbed =
                     app.post("https://mesfilms.pw/wp-admin/admin-ajax.php", headers = mapOf("Content-Type" to "application/x-www-form-urlencoded; charset=UTF-8"), data = payloadRequest).text
                 val playerUrl = parseJson<EmbedUrlClass>(getPlayerEmbed).url
-                val additionalInfo = listOf(quality, languageInfo)
-                println("server: $server")
-                println("playerUrl: $playerUrl")
-                println("quality: $quality")
 
                 if (playerUrl != null)
-                loadExtractor(httpsify(playerUrl), playerUrl, subtitleCallback, callback, additionalInfo)
+                loadExtractor(httpsify(playerUrl), playerUrl, subtitleCallback) { link ->
+                        callback.invoke(ExtractorLink(
+                            link.source,
+                            link.name + " $languageInfo",
+                            link.url,
+                            link.referer,
+                            getQualityFromName(quality),
+                            link.isM3u8,
+                            link.headers,
+                            link.extractorData
+                        ))
+                }
             }
 
 

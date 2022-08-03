@@ -19,7 +19,7 @@ open class GuardareStream : ExtractorApi() {
         @JsonProperty("type") val type : String
     )
 
-    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         val response = app.post(url.replace("/v/","/api/source/"), data = mapOf("d" to mainUrl)).text
         val jsonvideodata = AppUtils.parseJson<GuardareJsonData>(response)
         return jsonvideodata.data.map {

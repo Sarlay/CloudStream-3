@@ -165,7 +165,6 @@ suspend fun loadExtractor(
         referer = null,
         subtitleCallback = subtitleCallback,
         callback = callback,
-        additionalInfo = null
     )
 }
 
@@ -177,14 +176,13 @@ suspend fun loadExtractor(
     referer: String? = null,
     subtitleCallback: (SubtitleFile) -> Unit,
     callback: (ExtractorLink) -> Unit,
-    additionalInfo: List<String?>? = null,
 ): Boolean {
     val currentUrl = unshortenLinkSafe(url)
     val compareUrl = currentUrl.lowercase().replace(schemaStripRegex, "")
     for (extractor in extractorApis) {
 
         if (compareUrl.startsWith(extractor.mainUrl.replace(schemaStripRegex, ""))) {
-            extractor.getSafeUrl(currentUrl, referer, subtitleCallback, callback, additionalInfo)
+            extractor.getSafeUrl(currentUrl, referer, subtitleCallback, callback)
             return true
         }
     }
@@ -382,7 +380,7 @@ abstract class ExtractorApi {
     abstract val requiresReferer: Boolean
 
 
-    //suspend fun getSafeUrl(url: String, referer: String? = null, additionalInfo: List<String?>? = null)): List<ExtractorLink>? {
+    //suspend fun getSafeUrl(url: String, referer: String? = null)): List<ExtractorLink>? {
     //    return suspendSafeApiCall { getUrl(url, referer, additionalInfo) }
     //}
 
@@ -392,9 +390,8 @@ abstract class ExtractorApi {
         referer: String? = null,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit,
-        additionalInfo: List<String?>? = null
     ) {
-        getUrl(url, referer, additionalInfo)?.forEach(callback)
+        getUrl(url, referer)?.forEach(callback)
     }
 
     suspend fun getSafeUrl(
@@ -402,10 +399,9 @@ abstract class ExtractorApi {
         referer: String? = null,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit,
-        additionalInfo: List<String?>? = null,
     ) {
         try {
-            getUrl(url, referer, subtitleCallback, callback, additionalInfo)
+            getUrl(url, referer, subtitleCallback, callback)
         } catch (e: Exception) {
             logError(e)
         }
@@ -415,7 +411,7 @@ abstract class ExtractorApi {
      * Will throw errors, use getSafeUrl if you don't want to handle the exception yourself
      */
 
-    open suspend fun getUrl(url: String, referer: String? = null, additionalInfo: List<String?>? = null): List<ExtractorLink>? {
+    open suspend fun getUrl(url: String, referer: String? = null): List<ExtractorLink>? {
         return emptyList()
     }
 

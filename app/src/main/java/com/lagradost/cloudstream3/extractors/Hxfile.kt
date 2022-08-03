@@ -39,7 +39,7 @@ open class Hxfile : ExtractorApi() {
     override val requiresReferer = false
     open val redirect = true
 
-    override suspend fun getUrl(url: String, referer: String?, additionalInfo: List<String?>?): List<ExtractorLink>? {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink>? {
         val sources = mutableListOf<ExtractorLink>()
         val document = app.get(url, allowRedirects = redirect, referer = referer).document
         with(document) {
