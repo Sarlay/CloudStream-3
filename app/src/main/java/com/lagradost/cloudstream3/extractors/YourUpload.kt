@@ -12,7 +12,7 @@ class YourUpload: ExtractorApi() {
     override val mainUrl = "https://www.yourupload.com"
     override val requiresReferer = false
 
-override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
         val sources = mutableListOf<ExtractorLink>()
         with(app.get(url).document) {
             val quality = Regex("\\d{3,4}p").find(this.select("title").text())?.groupValues?.get(0)

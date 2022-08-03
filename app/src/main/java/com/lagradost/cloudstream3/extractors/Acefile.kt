@@ -8,7 +8,7 @@ class Acefile : ExtractorApi() {
     override val name = "Acefile"
     override val mainUrl = "https://acefile.co"
     override val requiresReferer = false
-override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
         val sources = mutableListOf<ExtractorLink>()
         app.get(url).document.select("script").map { script ->
             if (script.data().contains("eval(function(p,a,c,k,e,d)")) {

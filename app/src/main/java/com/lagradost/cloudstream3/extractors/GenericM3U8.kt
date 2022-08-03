@@ -10,7 +10,7 @@ open class GenericM3U8 : ExtractorApi() {
     override var mainUrl = "https://upstream.to"
     override val requiresReferer = false
 
-override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
 
         val response = app.get(
             url, interceptor = WebViewResolver(

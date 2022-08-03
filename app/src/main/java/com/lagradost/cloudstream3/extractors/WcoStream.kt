@@ -96,7 +96,7 @@ open class WcoStream : ExtractorApi() {
 
 
     //private val key = "LCbu3iYC7ln24K7P" // key credits @Modder4869
-override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
         val group = regex.find(url)?.groupValues!!
 
         val host = group[1]

@@ -10,7 +10,7 @@ class Filesim : ExtractorApi() {
     override val mainUrl = "https://files.im"
     override val requiresReferer = false
 
-override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
+    override suspend fun getUrl(url: String, referer: String?): List<ExtractorLink> {
         val sources = mutableListOf<ExtractorLink>()
         with(app.get(url).document) {
             this.select("script").map { script ->
