@@ -219,7 +219,6 @@ class FrenchStreamProvider : MainAPI() {
             }
 
         servers.apmap {
-            println(it.second)
             loadExtractor(it.second, it.second, subtitleCallback, callback)
         }
 

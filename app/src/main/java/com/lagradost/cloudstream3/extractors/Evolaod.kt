@@ -7,10 +7,6 @@ class Evoload1 : Evoload() {
     override var mainUrl = "https://evoload.io"
 }
 
-class opsktp : Evoload() {
-    override var mainUrl = "https://opsktp.com"
-}
-
 open class Evoload : ExtractorApi() {
     override val name: String = "Evoload"
     override val mainUrl: String = "https://www.evoload.io"
